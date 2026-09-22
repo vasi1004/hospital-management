@@ -1,10 +1,16 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { LoginPage } from "@/features/login";
 import { UsersPage } from "@/pages/UsersPage";
+import { AuditTrailPage } from "@/pages/admin/AuditTrailPage";
 import { AdminDashboardPage } from "@/pages/admin/AdminDashboardPage";
 import { DepartmentsPage } from "@/pages/admin/DepartmentsPage";
 import { DoctorsPage } from "@/pages/admin/DoctorsPage";
+import { AppointmentsPage } from "@/pages/appointments/AppointmentsPage";
 import { DoctorDashboardPage } from "@/pages/doctor/DoctorDashboardPage";
+import { DoctorTodayPage } from "@/pages/doctor/DoctorTodayPage";
+import { DoctorSchedulePage } from "@/pages/doctor/DoctorSchedulePage";
+import { DoctorHistoryPage } from "@/pages/doctor/DoctorHistoryPage";
+import { DoctorPrescriptionPage } from "@/pages/doctor/DoctorPrescriptionPage";
 import { ReceptionistDashboardPage } from "@/pages/receptionist/ReceptionistDashboardPage";
 import { PatientDashboardPage } from "@/pages/patient/PatientDashboardPage";
 import { PatientsPage } from "@/pages/patients/PatientsPage";
@@ -38,8 +44,10 @@ export default function App() {
       <Route element={<ProtectedRoute roles={[ROLES.ADMIN]} />}>
         <Route path="/admin" element={<AdminDashboardPage />} />
         <Route path="/admin/users" element={<UsersPage />} />
+        <Route path="/admin/audit" element={<AuditTrailPage />} />
         <Route path="/admin/departments" element={<DepartmentsPage />} />
         <Route path="/admin/doctors" element={<DoctorsPage />} />
+        <Route path="/admin/appointments" element={<AppointmentsPage />} />
         <Route
           path="/admin/patients"
           element={<PatientsPage basePath="/admin/patients" />}
@@ -61,6 +69,10 @@ export default function App() {
 
       <Route element={<ProtectedRoute roles={[ROLES.RECEPTIONIST]} />}>
         <Route path="/receptionist" element={<ReceptionistDashboardPage />} />
+        <Route
+          path="/receptionist/appointments"
+          element={<AppointmentsPage />}
+        />
         <Route
           path="/receptionist/patients"
           element={<PatientsPage basePath="/receptionist/patients" />}
@@ -87,6 +99,17 @@ export default function App() {
 
       <Route element={<ProtectedRoute roles={[ROLES.DOCTOR]} />}>
         <Route path="/doctor" element={<DoctorDashboardPage />} />
+        <Route path="/doctor/today" element={<DoctorTodayPage />} />
+        <Route path="/doctor/schedule" element={<DoctorSchedulePage />} />
+        <Route path="/doctor/history" element={<DoctorHistoryPage />} />
+        <Route
+          path="/doctor/prescriptions/new"
+          element={<DoctorPrescriptionPage />}
+        />
+        <Route
+          path="/doctor/prescriptions/:prescriptionId"
+          element={<DoctorPrescriptionPage />}
+        />
       </Route>
 
       <Route element={<ProtectedRoute roles={[ROLES.PATIENT]} />}>

@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { STORAGE_KEYS } from "@/constants/storageKeys";
-import { loginRequest } from "./loginApi";
+import { fetchMeRequest, loginRequest, logoutRequest } from "./loginApi";
 
 function readStoredUser() {
   try {
@@ -8,6 +8,14 @@ function readStoredUser() {
     return raw ? JSON.parse(raw) : null;
   } catch {
     return null;
+  }
+}
+
+function persistUser(user) {
+  if (user) {
+    sessionStorage.setItem(STORAGE_KEYS.user, JSON.stringify(user));
+  } else {
+    sessionStorage.removeItem(STORAGE_KEYS.user);
   }
 }
 
@@ -34,6 +42,36 @@ export const login = createAsyncThunk(
   },
 );
 
+/** Refresh profile from GET /auth/me (backend source of truth). */
+export const refreshCurrentUser = createAsyncThunk(
+  "auth/refreshCurrentUser",
+  async (_, { getState, rejectWithValue }) => {
+    const token = getState().auth.accessToken;
+    if (!token) {
+      return rejectWithValue("Not authenticated");
+    }
+    try {
+      return await fetchMeRequest(token);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Unable to load profile.";
+      return rejectWithValue(message);
+    }
+  },
+);
+
+/** Call backend logout when possible, then clear local session. */
+export const logout = createAsyncThunk("auth/logout", async (_, { getState }) => {
+  const token = getState().auth.accessToken;
+  if (token) {
+    try {
+      await logoutRequest(token);
+    } catch {
+      // Local sign-out must still succeed if the network/API call fails.
+    }
+  }
+});
+
 const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -43,16 +81,6 @@ const authSlice = createSlice({
       if (state.status === "failed") {
         state.status = "idle";
       }
-    },
-    logout(state) {
-      state.user = null;
-      state.accessToken = null;
-      state.refreshToken = null;
-      state.status = "idle";
-      state.error = null;
-      sessionStorage.removeItem(STORAGE_KEYS.accessToken);
-      sessionStorage.removeItem(STORAGE_KEYS.refreshToken);
-      sessionStorage.removeItem(STORAGE_KEYS.user);
     },
   },
   extraReducers: (builder) => {
@@ -75,10 +103,7 @@ const authSlice = createSlice({
           STORAGE_KEYS.refreshToken,
           action.payload.refresh_token,
         );
-        sessionStorage.setItem(
-          STORAGE_KEYS.user,
-          JSON.stringify(action.payload.user),
-        );
+        persistUser(action.payload.user);
       })
       .addCase(login.rejected, (state, action) => {
         state.status = "failed";
@@ -87,9 +112,33 @@ const authSlice = createSlice({
         state.refreshToken = null;
         state.error =
           action.payload || action.error.message || "Unable to sign in.";
+      })
+      .addCase(refreshCurrentUser.fulfilled, (state, action) => {
+        state.user = action.payload;
+        persistUser(action.payload);
+      })
+      .addCase(logout.fulfilled, (state) => {
+        state.user = null;
+        state.accessToken = null;
+        state.refreshToken = null;
+        state.status = "idle";
+        state.error = null;
+        sessionStorage.removeItem(STORAGE_KEYS.accessToken);
+        sessionStorage.removeItem(STORAGE_KEYS.refreshToken);
+        sessionStorage.removeItem(STORAGE_KEYS.user);
+      })
+      .addCase(logout.rejected, (state) => {
+        state.user = null;
+        state.accessToken = null;
+        state.refreshToken = null;
+        state.status = "idle";
+        state.error = null;
+        sessionStorage.removeItem(STORAGE_KEYS.accessToken);
+        sessionStorage.removeItem(STORAGE_KEYS.refreshToken);
+        sessionStorage.removeItem(STORAGE_KEYS.user);
       });
   },
 });
 
-export const { clearAuthError, logout } = authSlice.actions;
+export const { clearAuthError } = authSlice.actions;
 export default authSlice.reducer;

@@ -1,4 +1,8 @@
-/** HMS role constants and dashboard home paths. */
+/** HMS role constants and dashboard home paths.
+ * Assignable role labels for user management come from
+ * GET /api/v1/users/roles (auth backend). These locals are for
+ * route guards and post-login navigation only.
+ */
 
 export const ROLES = {
   ADMIN: "admin",
@@ -6,13 +10,6 @@ export const ROLES = {
   RECEPTIONIST: "receptionist",
   PATIENT: "patient",
 };
-
-export const ROLE_OPTIONS = [
-  { value: "admin", label: "Admin" },
-  { value: "doctor", label: "Doctor" },
-  { value: "receptionist", label: "Receptionist" },
-  { value: "patient", label: "Patient" },
-];
 
 export const ROLE_HOME = {
   admin: "/admin",
@@ -26,6 +23,6 @@ export function getRoleHome(role) {
 }
 
 export function roleLabel(role) {
-  const found = ROLE_OPTIONS.find((item) => item.value === role);
-  return found?.label ?? role;
+  if (!role) return "";
+  return String(role).charAt(0).toUpperCase() + String(role).slice(1);
 }

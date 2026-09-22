@@ -14,18 +14,26 @@ export function ReceptionistDashboardPage() {
       subtitle="Front desk"
       navItems={RECEPTION_NAV}
       title="Receptionist Dashboard"
+      lockViewport
     >
       <EmptyDashboard
         heading={`Welcome, ${user.full_name || user.username}`}
-        description="Register patients and manage front-desk workflows from here."
+        description="Register patients and schedule doctor appointments from the front desk."
         cards={[
-          { label: "Patients", value: "Open", hint: "Use Patients in the sidebar" },
-          { label: "Appointments", value: "—", hint: "Phase 6" },
-          { label: "Billing", value: "—", hint: "Phase 8" },
+          { label: "Patients", value: "Open", hint: "Register and update patients" },
+          {
+            label: "Appointments",
+            value: "Open",
+            hint: "Book available doctors by date and slot",
+          },
+          { label: "Billing", value: "—", hint: "Coming later" },
         ]}
       />
-      <div className="mt-4">
-        <Link to="/receptionist/patients" className="ui-btn ui-btn-primary">
+      <div className="mt-4 flex flex-wrap gap-2">
+        <Link to="/receptionist/appointments" className="ui-btn ui-btn-primary">
+          Schedule appointment
+        </Link>
+        <Link to="/receptionist/patients" className="ui-btn ui-btn-ghost">
           Go to Patients
         </Link>
       </div>

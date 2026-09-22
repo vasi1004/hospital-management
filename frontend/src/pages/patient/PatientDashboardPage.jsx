@@ -15,6 +15,7 @@ export function PatientDashboardPage() {
       subtitle="Patient portal"
       navItems={NAV}
       title="Patient Dashboard"
+      lockViewport
     >
       <EmptyDashboard
         heading={`Hello, ${user.full_name || user.username}`}
