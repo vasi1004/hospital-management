@@ -1,0 +1,21 @@
+.users-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+  gap: 1.15rem;
+  align-items: start;
+}
+
+.users-row-name {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.users-row-name strong {
+  font-weight: 700;
+}
+
+@media (max-width: 1100px) {
+  .users-layout {
+    grid-template-columns: 1fr;
+  }
+}
