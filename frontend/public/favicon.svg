@@ -1,7 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
-  <rect width="64" height="64" fill="#0A0A0B"/>
-  <path d="M10 38h44l-6-12H16L10 38z" stroke="#F4F4F5" stroke-width="2"/>
-  <circle cx="20" cy="40" r="4" stroke="#9E1F24" stroke-width="2"/>
-  <circle cx="44" cy="40" r="4" stroke="#9E1F24" stroke-width="2"/>
-  <path d="M18 26h28" stroke="#C8C9CB" stroke-width="1.5"/>
+  <defs>
+    <linearGradient id="g" x1="8" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#3B82F6"/>
+      <stop offset="1" stop-color="#14B8A6"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="#FFFFFF"/>
+  <path
+    fill="url(#g)"
+    d="M26 10h12c2.2 0 4 1.8 4 4v8h8c2.2 0 4 1.8 4 4v12c0 2.2-1.8 4-4 4h-8v8c0 2.2-1.8 4-4 4H26c-2.2 0-4-1.8-4-4v-8h-8c-2.2 0-4-1.8-4-4V26c0-2.2 1.8-4 4-4h8v-8c0-2.2 1.8-4 4-4z"
+  />
+  <circle cx="32" cy="26" r="4.2" fill="#FFFFFF"/>
+  <path
+    fill="#FFFFFF"
+    d="M32 45.2c-5.4-3.7-8.8-6.6-8.8-10.2 0-2.4 1.8-4.2 4.2-4.2 1.4 0 2.7.7 3.5 1.8.8-1.1 2.1-1.8 3.5-1.8 2.4 0 4.2 1.8 4.2 4.2 0 3.6-3.4 6.5-8.8 10.2z"
+  />
 </svg>

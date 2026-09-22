@@ -144,3 +144,133 @@ export async function setDoctorActiveRequest(accessToken, id, active) {
     : API_URLS.doctors.deactivate(id);
   return request(path, { method: "PATCH", accessToken });
 }
+
+export async function fetchMyDoctorProfile(accessToken) {
+  return request(API_URLS.doctorWorkspace.me, { accessToken });
+}
+
+export async function listAppointmentsRequest(accessToken, params = {}) {
+  const query = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== "") {
+      query.set(key, String(value));
+    }
+  });
+  const suffix = query.toString() ? `?${query}` : "";
+  return request(`${API_URLS.appointments.list}${suffix}`, { accessToken });
+}
+
+export async function listMyTodayAppointmentsRequest(accessToken) {
+  return request(API_URLS.appointments.mineToday, { accessToken });
+}
+
+export async function listMyUpcomingAppointmentsRequest(accessToken, days = 14) {
+  return request(`${API_URLS.appointments.mineUpcoming}?days=${days}`, {
+    accessToken,
+  });
+}
+
+export async function createAppointmentRequest(accessToken, payload) {
+  return request(API_URLS.appointments.create, {
+    method: "POST",
+    accessToken,
+    body: payload,
+  });
+}
+
+export async function listAvailableDoctorsRequest(accessToken, params = {}) {
+  const query = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== "") {
+      query.set(key, String(value));
+    }
+  });
+  const suffix = query.toString() ? `?${query}` : "";
+  return request(`${API_URLS.appointments.availability}${suffix}`, {
+    accessToken,
+  });
+}
+
+export async function listDoctorFreeSlotsRequest(
+  accessToken,
+  doctorId,
+  params = {},
+) {
+  const query = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== "") {
+      query.set(key, String(value));
+    }
+  });
+  const suffix = query.toString() ? `?${query}` : "";
+  return request(
+    `${API_URLS.appointments.doctorSlots(doctorId)}${suffix}`,
+    { accessToken },
+  );
+}
+
+export async function rescheduleAppointmentRequest(
+  accessToken,
+  appointmentId,
+  payload,
+) {
+  return request(API_URLS.appointments.reschedule(appointmentId), {
+    method: "PATCH",
+    accessToken,
+    body: payload,
+  });
+}
+
+export async function updateAppointmentStatusRequest(
+  accessToken,
+  appointmentId,
+  statusValue,
+) {
+  return request(API_URLS.appointments.status(appointmentId), {
+    method: "PATCH",
+    accessToken,
+    body: { status: statusValue },
+  });
+}
+
+export async function listPrescriptionsRequest(accessToken, params = {}) {
+  const query = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== "") {
+      query.set(key, String(value));
+    }
+  });
+  const suffix = query.toString() ? `?${query}` : "";
+  return request(`${API_URLS.prescriptions.list}${suffix}`, { accessToken });
+}
+
+export async function getPrescriptionRequest(accessToken, id) {
+  return request(API_URLS.prescriptions.detail(id), { accessToken });
+}
+
+export async function createPrescriptionRequest(accessToken, payload) {
+  return request(API_URLS.prescriptions.create, {
+    method: "POST",
+    accessToken,
+    body: payload,
+  });
+}
+
+export async function listAuditEventsRequest(accessToken, params = {}) {
+  const query = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== "") {
+      query.set(key, String(value));
+    }
+  });
+  const suffix = query.toString() ? `?${query}` : "";
+  return request(`${API_URLS.audit.events}${suffix}`, { accessToken });
+}
+
+export async function getAuditEventRequest(accessToken, eventRef) {
+  return request(API_URLS.audit.eventDetail(eventRef), { accessToken });
+}
+
+export async function fetchAuditMetaRequest(accessToken) {
+  return request(API_URLS.audit.meta, { accessToken });
+}

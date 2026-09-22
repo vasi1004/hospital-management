@@ -9,6 +9,7 @@ import {
   setDoctorActiveRequest,
   updateDoctorRequest,
 } from "@/services/hmsApi";
+import { listUsersRequest } from "@/features/login/loginApi";
 import { ADMIN_NAV } from "@/constants/nav";
 
 const EMPTY = {
@@ -24,6 +25,7 @@ const EMPTY = {
   available_from: "09:00",
   available_to: "17:00",
   consultation_fee: 500,
+  auth_user_id: "",
   is_active: true,
 };
 
@@ -31,6 +33,7 @@ export function DoctorsPage() {
   const { user, accessToken } = useAppSelector((state) => state.auth);
   const [items, setItems] = useState([]);
   const [departments, setDepartments] = useState([]);
+  const [doctorUsers, setDoctorUsers] = useState([]);
   const [form, setForm] = useState(EMPTY);
   const [editingId, setEditingId] = useState(null);
   const [search, setSearch] = useState("");
@@ -44,7 +47,7 @@ export function DoctorsPage() {
     setLoading(true);
     setError(null);
     try {
-      const [docs, deps] = await Promise.all([
+      const [docs, deps, users] = await Promise.all([
         listDoctorsRequest(accessToken, {
           search,
           status,
@@ -52,9 +55,11 @@ export function DoctorsPage() {
           page_size: 50,
         }),
         listDepartmentsRequest(accessToken, true),
+        listUsersRequest(accessToken, { role: "doctor", status: "active" }),
       ]);
       setItems(docs.items || []);
       setDepartments(Array.isArray(deps) ? deps : []);
+      setDoctorUsers(Array.isArray(users) ? users : []);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load");
     } finally {
@@ -88,6 +93,7 @@ export function DoctorsPage() {
       available_from: doc.available_from ? String(doc.available_from).slice(0, 5) : "",
       available_to: doc.available_to ? String(doc.available_to).slice(0, 5) : "",
       consultation_fee: Number(doc.consultation_fee || 0),
+      auth_user_id: doc.auth_user_id || "",
       is_active: doc.is_active,
     });
   }
@@ -109,6 +115,10 @@ export function DoctorsPage() {
       setError("First name, last name, specialization, and 10-digit phone are required");
       return;
     }
+    if (!form.auth_user_id) {
+      setError("Link a doctor login account (auth user) is required");
+      return;
+    }
 
     const payload = {
       first_name: form.first_name.trim(),
@@ -123,6 +133,7 @@ export function DoctorsPage() {
       available_from: form.available_from || null,
       available_to: form.available_to || null,
       consultation_fee: Number(form.consultation_fee) || 0,
+      auth_user_id: Number(form.auth_user_id),
       is_active: Boolean(form.is_active),
     };
 
@@ -207,6 +218,23 @@ export function DoctorsPage() {
                 />
               </label>
             ))}
+            <label className="ui-label">
+              Login account (doctor role) *
+              <select
+                className="ui-select"
+                value={form.auth_user_id}
+                onChange={(e) => update("auth_user_id", e.target.value)}
+                required
+              >
+                <option value="">Select auth user</option>
+                {doctorUsers.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.username}
+                    {u.full_name ? ` · ${u.full_name}` : ""} ({u.email})
+                  </option>
+                ))}
+              </select>
+            </label>
             <label className="ui-label">
               Department
               <select

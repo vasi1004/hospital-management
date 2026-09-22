@@ -1,35 +1,32 @@
-import { APP_NAME } from "@/constants/urls";
 import { LoginForm } from "./LoginForm";
+import { AppLogo } from "@/components/AppLogo";
 import "./LoginPage.css";
 
 export function LoginPage() {
   return (
     <main className="login-page">
-      <div className="login-page__art" aria-hidden="true">
-        <div className="login-page__orb login-page__orb--a" />
-        <div className="login-page__orb login-page__orb--b" />
-        <div className="login-page__grid" />
-      </div>
+      <div className="login-shell">
+        <aside className="login-brand-panel" aria-label="Hospital Management System">
+          <div className="login-brand-panel__logo">
+            <AppLogo variant="full" effect3d className="login-brand-logo" />
+          </div>
 
-      <section className="login-hero-copy" aria-hidden="false">
-        <p className="login-kicker">Hospital Management System</p>
-        <h1 className="login-brand">{APP_NAME}</h1>
-        <p className="login-lead">
-          One calm workspace for clinicians, reception, and care teams —
-          appointments, records, and people in sync.
-        </p>
-      </section>
-
-      <section className="login-card">
-        <header className="login-card__header">
-          <p className="login-card__eyebrow">Secure sign in</p>
-          <h2>Welcome back</h2>
-          <p className="login-card__subtitle">
-            Use your hospital credentials to open your role dashboard.
+          <p className="login-brand-panel__quote">
+            We are always fully focused on helping your care.
           </p>
-        </header>
-        <LoginForm />
-      </section>
+        </aside>
+
+        <section className="login-form-panel">
+          <header className="login-form-panel__header">
+            <div className="login-form-panel__mark" aria-hidden="true">
+              <AppLogo variant="mark" effect3d decorative />
+            </div>
+            <h1>Log in</h1>
+            <p>Sign in with your username or email to open your role dashboard.</p>
+          </header>
+          <LoginForm />
+        </section>
+      </div>
     </main>
   );
 }

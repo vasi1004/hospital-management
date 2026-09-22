@@ -12,7 +12,7 @@ export function LoginForm() {
   const usernameId = useId();
   const passwordId = useId();
 
-  const [username, setUsername] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
@@ -26,10 +26,12 @@ export function LoginForm() {
 
   function handleSubmit(event) {
     event.preventDefault();
-    if (!username.trim() || !password) return;
+    const loginId = identifier.trim();
+    if (!loginId || !password) return;
     dispatch(
       login({
-        username: username.trim(),
+        // Backend accepts username or email in this field.
+        username: loginId,
         password,
       }),
     );
@@ -38,18 +40,19 @@ export function LoginForm() {
   return (
     <form className="login-form" onSubmit={handleSubmit} noValidate>
       <div className="login-field">
-        <label htmlFor={usernameId}>Username</label>
+        <label htmlFor={usernameId}>Username or email</label>
         <input
           id={usernameId}
           name="username"
           type="text"
+          inputMode="email"
           autoComplete="username"
-          placeholder="Enter username"
-          value={username}
+          placeholder="Enter username or email"
+          value={identifier}
           disabled={isLoading}
           onChange={(event) => {
             if (error) dispatch(clearAuthError());
-            setUsername(event.target.value);
+            setIdentifier(event.target.value);
           }}
           required
           minLength={3}
@@ -57,32 +60,59 @@ export function LoginForm() {
       </div>
 
       <div className="login-field">
-        <div className="login-field__label-row">
-          <label htmlFor={passwordId}>Password</label>
+        <label htmlFor={passwordId}>Password</label>
+        <div className="login-field__password">
+          <input
+            id={passwordId}
+            name="password"
+            type={showPassword ? "text" : "password"}
+            autoComplete="current-password"
+            placeholder="Enter password"
+            value={password}
+            disabled={isLoading}
+            onChange={(event) => {
+              if (error) dispatch(clearAuthError());
+              setPassword(event.target.value);
+            }}
+            required
+            minLength={8}
+          />
           <button
             type="button"
-            className="login-ghost-btn"
+            className="login-eye-btn"
             onClick={() => setShowPassword((value) => !value)}
             disabled={isLoading}
+            aria-label={showPassword ? "Hide password" : "Show password"}
           >
-            {showPassword ? "Hide" : "Show"}
+            {showPassword ? (
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="M3 3l18 18M10.5 10.7a2.5 2.5 0 0 0 3.5 3.5M9.9 5.2A10.5 10.5 0 0 1 12 5c5.2 0 9.2 3.4 10.5 7-0.5 1.4-1.4 2.8-2.6 3.9M6.1 6.2C4.5 7.4 3.3 9 2.5 12c1.3 3.6 5.3 7 10.5 7 1.4 0 2.7-.2 3.9-.7"
+                  stroke="currentColor"
+                  strokeWidth="1.7"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            ) : (
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="M2.5 12C3.8 8.4 7.8 5 12 5s8.2 3.4 9.5 7c-1.3 3.6-5.3 7-9.5 7s-8.2-3.4-9.5-7Z"
+                  stroke="currentColor"
+                  strokeWidth="1.7"
+                  strokeLinejoin="round"
+                />
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="3"
+                  stroke="currentColor"
+                  strokeWidth="1.7"
+                />
+              </svg>
+            )}
           </button>
         </div>
-        <input
-          id={passwordId}
-          name="password"
-          type={showPassword ? "text" : "password"}
-          autoComplete="current-password"
-          placeholder="Enter password"
-          value={password}
-          disabled={isLoading}
-          onChange={(event) => {
-            if (error) dispatch(clearAuthError());
-            setPassword(event.target.value);
-          }}
-          required
-          minLength={8}
-        />
       </div>
 
       {error ? (
@@ -94,9 +124,9 @@ export function LoginForm() {
       <button
         type="submit"
         className="login-submit"
-        disabled={isLoading || !username.trim() || password.length < 8}
+        disabled={isLoading || !identifier.trim() || password.length < 8}
       >
-        {isLoading ? "Signing in…" : "Sign in"}
+        {isLoading ? "Signing in…" : "Log in"}
       </button>
     </form>
   );

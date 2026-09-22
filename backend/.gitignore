@@ -1,7 +1,5 @@
-# Do not keep a shared backend venv here.
-# Each service has its own venv:
-#   auth_server/venv
-#   schedule_server/venv
+# Prefer the unified service venv:
+#   all_backend_server/venv
 venv/
 .venv/
 

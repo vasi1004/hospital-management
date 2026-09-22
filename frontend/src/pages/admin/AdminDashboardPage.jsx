@@ -88,44 +88,45 @@ export function AdminDashboardPage() {
       subtitle="Admin console"
       navItems={ADMIN_NAV}
       title="Admin Dashboard"
+      lockViewport
     >
-      <div className="space-y-5">
-        <section className="ui-panel ui-panel-pad ui-rise">
+      <div className="flex h-full min-h-0 flex-col gap-3 overflow-hidden">
+        <section className="ui-panel ui-panel-pad ui-rise shrink-0 py-3">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent)]">
             Today&apos;s pulse
           </p>
-          <h2 className="ui-title mt-1 text-xl">
+          <h2 className="ui-title mt-0.5 text-lg">
             Welcome, {user.full_name || user.username}
           </h2>
-          <p className="ui-muted mt-2 max-w-2xl">
+          <p className="ui-muted mt-1 max-w-2xl text-sm">
             Live hospital overview across patients, clinicians, and appointments.
           </p>
         </section>
 
-        {error ? <p className="ui-alert-error">{error}</p> : null}
+        {error ? <p className="ui-alert-error shrink-0">{error}</p> : null}
 
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid shrink-0 gap-2 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-7">
           {cards.map((card, index) => (
             <article
               key={card.label}
-              className={`ui-panel ui-panel-pad ui-stat ui-rise ${
+              className={`ui-panel ui-panel-pad ui-stat ui-rise py-3 ${
                 index < 3 ? `ui-rise-delay-${(index % 3) + 1}` : ""
               }`}
             >
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--ink-soft)]">
+              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-[var(--ink-soft)]">
                 {card.label}
               </p>
-              <p className="mt-2 font-display text-2xl font-bold tabular-nums">
+              <p className="mt-1 font-display text-xl font-bold tabular-nums">
                 {loading ? "…" : card.value}
               </p>
             </article>
           ))}
         </div>
 
-        <div className="grid gap-4 xl:grid-cols-2">
-          <section className="ui-panel ui-panel-pad ui-rise ui-rise-delay-2">
-            <h3 className="ui-title text-base">Today&apos;s appointments</h3>
-            <div className="ui-table-wrap mt-3">
+        <div className="grid min-h-0 flex-1 gap-3 overflow-hidden xl:grid-cols-2">
+          <section className="ui-panel ui-panel-pad ui-rise ui-rise-delay-2 flex min-h-0 flex-col overflow-hidden">
+            <h3 className="ui-title shrink-0 text-base">Today&apos;s appointments</h3>
+            <div className="ui-table-wrap mt-2 min-h-0 flex-1 overflow-auto">
               <table className="ui-table">
                 <thead>
                   <tr>
@@ -163,9 +164,9 @@ export function AdminDashboardPage() {
             </div>
           </section>
 
-          <section className="ui-panel ui-panel-pad ui-rise ui-rise-delay-3">
-            <h3 className="ui-title text-base">Appointments · 7 days</h3>
-            <div className="mt-3 h-64">
+          <section className="ui-panel ui-panel-pad ui-rise ui-rise-delay-3 flex min-h-0 flex-col overflow-hidden">
+            <h3 className="ui-title shrink-0 text-base">Appointments · 7 days</h3>
+            <div className="mt-2 min-h-0 flex-1">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={data?.appointment_stats || []}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#d5e0e6" />
