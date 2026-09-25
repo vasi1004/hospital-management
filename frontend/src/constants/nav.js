@@ -17,6 +17,7 @@ export const RECEPTION_NAV = [
 export const DOCTOR_NAV = [
   { to: "/doctor", label: "Dashboard", end: true },
   { to: "/doctor/today", label: "Today's patients" },
+  { to: "/doctor/availability", label: "Availability" },
   { to: "/doctor/schedule", label: "Schedule" },
   { to: "/doctor/history", label: "History" },
 ];

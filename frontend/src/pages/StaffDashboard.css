@@ -1,0 +1,105 @@
+.staff-dash {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  height: 100%;
+  min-height: 0;
+  overflow: auto;
+  padding-bottom: 0.25rem;
+}
+
+.staff-dash__hero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+  flex-shrink: 0;
+  padding-top: 0.85rem !important;
+  padding-bottom: 0.85rem !important;
+}
+
+.staff-dash__hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.staff-dash__kpis {
+  display: grid;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.staff-dash__grid {
+  display: grid;
+  gap: 0.75rem;
+  min-height: 0;
+  flex: 1 1 auto;
+  grid-template-columns: 1fr;
+}
+
+.staff-dash__grid > .ui-panel {
+  min-width: 0;
+  min-height: 12rem;
+}
+
+.staff-dash__availability {
+  min-width: 0;
+  min-height: 18rem;
+}
+
+.staff-dash__availability .doc-avail-board {
+  min-height: 18rem;
+  height: 100%;
+}
+
+/* Dashboard tables must fit the panel — no forced wide min-width */
+.staff-dash .ui-table-wrap {
+  min-width: 0;
+}
+
+.staff-dash .ui-table {
+  min-width: 0;
+  width: 100%;
+}
+
+.staff-dash .ui-table th,
+.staff-dash .ui-table td {
+  padding: 0.55rem 0.65rem;
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.staff-dash--reception .staff-dash__reception-main {
+  min-height: 0;
+  flex: 1 1 auto;
+}
+
+.staff-dash--reception .doc-avail-board {
+  min-height: min(52vh, 560px);
+  height: 100%;
+}
+
+@media (min-width: 640px) {
+  .staff-dash__kpis {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1100px) {
+  .staff-dash__kpis {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+  }
+
+  .staff-dash__grid {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    grid-template-rows: minmax(14rem, 1fr) minmax(20rem, 1.15fr);
+  }
+
+  .staff-dash__availability {
+    grid-column: 1 / -1;
+  }
+}

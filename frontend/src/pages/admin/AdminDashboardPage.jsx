@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import {
   Bar,
   BarChart,
@@ -10,9 +10,11 @@ import {
   YAxis,
 } from "recharts";
 import { RoleLayout } from "@/layouts/RoleLayout";
+import { DoctorAvailabilityBoard } from "@/components/DoctorAvailabilityBoard";
 import { useAppSelector } from "@/store/hooks";
 import { fetchAdminDashboard } from "@/services/hmsApi";
 import { ADMIN_NAV } from "@/constants/nav";
+import "../StaffDashboard.css";
 
 function formatMoney(value) {
   const num = Number(value || 0);
@@ -90,22 +92,28 @@ export function AdminDashboardPage() {
       title="Admin Dashboard"
       lockViewport
     >
-      <div className="flex h-full min-h-0 flex-col gap-3 overflow-hidden">
-        <section className="ui-panel ui-panel-pad ui-rise shrink-0 py-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent)]">
-            Today&apos;s pulse
-          </p>
-          <h2 className="ui-title mt-0.5 text-lg">
-            Welcome, {user.full_name || user.username}
-          </h2>
-          <p className="ui-muted mt-1 max-w-2xl text-sm">
-            Live hospital overview across patients, clinicians, and appointments.
-          </p>
+      <div className="staff-dash">
+        <section className="ui-panel ui-panel-pad ui-rise staff-dash__hero">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent)]">
+              Today&apos;s pulse
+            </p>
+            <h2 className="ui-title mt-0.5 text-lg">
+              Welcome, {user.full_name || user.username}
+            </h2>
+            <p className="ui-muted mt-1 max-w-2xl text-sm">
+              Live hospital overview — appointments and doctor coverage from the
+              server.
+            </p>
+          </div>
+          <Link to="/admin/appointments" className="ui-btn ui-btn-primary">
+            Open appointments
+          </Link>
         </section>
 
         {error ? <p className="ui-alert-error shrink-0">{error}</p> : null}
 
-        <div className="grid shrink-0 gap-2 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-7">
+        <div className="staff-dash__kpis">
           {cards.map((card, index) => (
             <article
               key={card.label}
@@ -123,9 +131,11 @@ export function AdminDashboardPage() {
           ))}
         </div>
 
-        <div className="grid min-h-0 flex-1 gap-3 overflow-hidden xl:grid-cols-2">
+        <div className="staff-dash__grid">
           <section className="ui-panel ui-panel-pad ui-rise ui-rise-delay-2 flex min-h-0 flex-col overflow-hidden">
-            <h3 className="ui-title shrink-0 text-base">Today&apos;s appointments</h3>
+            <h3 className="ui-title shrink-0 text-base">
+              Today&apos;s appointments
+            </h3>
             <div className="ui-table-wrap mt-2 min-h-0 flex-1 overflow-auto">
               <table className="ui-table">
                 <thead>
@@ -152,7 +162,9 @@ export function AdminDashboardPage() {
                         <td>{row.patient_name}</td>
                         <td>{row.doctor_name}</td>
                         <td>
-                          <span className={`ui-badge ${statusBadge(row.status)}`}>
+                          <span
+                            className={`ui-badge ${statusBadge(row.status)}`}
+                          >
                             {String(row.status).replaceAll("_", " ")}
                           </span>
                         </td>
@@ -169,15 +181,34 @@ export function AdminDashboardPage() {
             <div className="mt-2 min-h-0 flex-1">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={data?.appointment_stats || []}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#d5e0e6" />
-                  <XAxis dataKey="label" tick={{ fill: "#5b6b75", fontSize: 12 }} />
-                  <YAxis allowDecimals={false} tick={{ fill: "#5b6b75", fontSize: 12 }} />
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    vertical={false}
+                    stroke="#c9d8e4"
+                  />
+                  <XAxis
+                    dataKey="label"
+                    tick={{ fill: "#5b7380", fontSize: 12 }}
+                  />
+                  <YAxis
+                    allowDecimals={false}
+                    tick={{ fill: "#5b7380", fontSize: 12 }}
+                  />
                   <Tooltip />
-                  <Bar dataKey="count" fill="#2b6cb0" radius={[8, 8, 0, 0]} />
+                  <Bar dataKey="count" fill="#0078d8" radius={[8, 8, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </section>
+
+          <div className="staff-dash__availability ui-rise">
+            <DoctorAvailabilityBoard
+              accessToken={accessToken}
+              days={7}
+              bookAppointmentsPath="/admin/appointments"
+              compact
+            />
+          </div>
         </div>
       </div>
     </RoleLayout>

@@ -1,11 +1,12 @@
-import { Navigate, Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { RoleLayout } from "@/layouts/RoleLayout";
-import { EmptyDashboard } from "@/components/EmptyDashboard";
+import { DoctorAvailabilityBoard } from "@/components/DoctorAvailabilityBoard";
 import { useAppSelector } from "@/store/hooks";
 import { RECEPTION_NAV } from "@/constants/nav";
+import "../StaffDashboard.css";
 
 export function ReceptionistDashboardPage() {
-  const { user } = useAppSelector((state) => state.auth);
+  const { user, accessToken } = useAppSelector((state) => state.auth);
   if (!user) return <Navigate to="/login" replace />;
 
   return (
@@ -16,26 +17,40 @@ export function ReceptionistDashboardPage() {
       title="Receptionist Dashboard"
       lockViewport
     >
-      <EmptyDashboard
-        heading={`Welcome, ${user.full_name || user.username}`}
-        description="Register patients and schedule doctor appointments from the front desk."
-        cards={[
-          { label: "Patients", value: "Open", hint: "Register and update patients" },
-          {
-            label: "Appointments",
-            value: "Open",
-            hint: "Book available doctors by date and slot",
-          },
-          { label: "Billing", value: "—", hint: "Coming later" },
-        ]}
-      />
-      <div className="mt-4 flex flex-wrap gap-2">
-        <Link to="/receptionist/appointments" className="ui-btn ui-btn-primary">
-          Schedule appointment
-        </Link>
-        <Link to="/receptionist/patients" className="ui-btn ui-btn-ghost">
-          Go to Patients
-        </Link>
+      <div className="staff-dash staff-dash--reception">
+        <section className="ui-panel ui-panel-pad ui-rise staff-dash__hero">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent)]">
+              Front desk
+            </p>
+            <h2 className="ui-title mt-0.5 text-lg">
+              Welcome, {user.full_name || user.username}
+            </h2>
+            <p className="ui-muted mt-1 max-w-2xl text-sm">
+              See which doctors are bookable today and later this week, then
+              schedule from live free slots.
+            </p>
+          </div>
+          <div className="staff-dash__hero-actions">
+            <Link
+              to="/receptionist/appointments"
+              className="ui-btn ui-btn-primary"
+            >
+              Schedule appointment
+            </Link>
+            <Link to="/receptionist/patients" className="ui-btn ui-btn-ghost">
+              Patients
+            </Link>
+          </div>
+        </section>
+
+        <div className="staff-dash__reception-main ui-rise ui-rise-delay-1">
+          <DoctorAvailabilityBoard
+            accessToken={accessToken}
+            days={7}
+            bookAppointmentsPath="/receptionist/appointments"
+          />
+        </div>
       </div>
     </RoleLayout>
   );
