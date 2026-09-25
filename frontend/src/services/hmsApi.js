@@ -43,6 +43,32 @@ export async function fetchAdminDashboard(accessToken) {
   return request(API_URLS.dashboard.admin, { accessToken });
 }
 
+export async function fetchDoctorAvailabilityOverview(
+  accessToken,
+  params = {},
+) {
+  const query = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== "") {
+      query.set(key, String(value));
+    }
+  });
+  const suffix = query.toString() ? `?${query}` : "";
+  try {
+    return await request(`${API_URLS.dashboard.doctorAvailability}${suffix}`, {
+      accessToken,
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    if (/not found/i.test(message)) {
+      throw new Error(
+        "Availability API not found. Restart the backend server to load the new dashboard route.",
+      );
+    }
+    throw err;
+  }
+}
+
 export async function listPatientsRequest(accessToken, params = {}) {
   const query = new URLSearchParams();
   Object.entries(params).forEach(([key, value]) => {
@@ -147,6 +173,21 @@ export async function setDoctorActiveRequest(accessToken, id, active) {
 
 export async function fetchMyDoctorProfile(accessToken) {
   return request(API_URLS.doctorWorkspace.me, { accessToken });
+}
+
+export async function updateMyDoctorAvailabilityRequest(accessToken, payload) {
+  return request(API_URLS.doctorWorkspace.availability, {
+    method: "PUT",
+    accessToken,
+    body: payload,
+  });
+}
+
+export async function clearMyDoctorAvailabilityRequest(accessToken) {
+  return request(API_URLS.doctorWorkspace.availability, {
+    method: "DELETE",
+    accessToken,
+  });
 }
 
 export async function listAppointmentsRequest(accessToken, params = {}) {

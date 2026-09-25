@@ -52,6 +52,7 @@ export const API_URLS = {
   },
   dashboard: {
     admin: `${API_BASE}/api/v1/dashboard/admin`,
+    doctorAvailability: `${API_BASE}/api/v1/dashboard/doctor-availability`,
   },
   patients: {
     list: `${API_BASE}/api/v1/patients/`,
@@ -92,5 +93,6 @@ export const API_URLS = {
   },
   doctorWorkspace: {
     me: `${API_BASE}/api/v1/doctor-workspace/me`,
+    availability: `${API_BASE}/api/v1/doctor-workspace/me/availability`,
   },
 };

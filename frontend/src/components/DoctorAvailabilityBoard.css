@@ -1,0 +1,203 @@
+.doc-avail-board {
+  display: grid;
+  grid-template-rows: auto auto auto minmax(6rem, 1fr);
+  gap: 0.75rem;
+  min-height: 0;
+  height: 100%;
+  padding: 1rem 1.1rem 1.05rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+}
+
+.doc-avail-board__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.65rem;
+}
+
+.doc-avail-board__head-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+  flex-shrink: 0;
+}
+
+.doc-avail-board__summary {
+  display: grid;
+  gap: 0.45rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.doc-avail-board--compact .doc-avail-board__summary {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.doc-avail-board__stat {
+  padding: 0.55rem 0.65rem;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 120, 216, 0.12);
+  background: linear-gradient(
+    180deg,
+    rgba(0, 120, 216, 0.06),
+    rgba(255, 255, 255, 0.9)
+  );
+  min-width: 0;
+}
+
+.doc-avail-board__stat span {
+  display: block;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.doc-avail-board__stat strong {
+  display: block;
+  margin-top: 0.15rem;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.doc-avail-board__days {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(5.25rem, 1fr);
+  gap: 0.4rem;
+  overflow-x: auto;
+  padding-bottom: 0.1rem;
+}
+
+.doc-avail-board__day {
+  display: grid;
+  gap: 0.1rem;
+  justify-items: start;
+  text-align: left;
+  min-height: 3.9rem;
+  padding: 0.5rem 0.55rem;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 120, 216, 0.14);
+  background: #fff;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition:
+    background 160ms var(--ease),
+    border-color 160ms var(--ease),
+    color 160ms var(--ease),
+    box-shadow 160ms var(--ease);
+}
+
+.doc-avail-board__day:hover:not(:disabled) {
+  border-color: rgba(0, 120, 216, 0.35);
+  color: var(--accent-deep);
+}
+
+.doc-avail-board__day.is-active {
+  color: #fff;
+  border-color: transparent;
+  background: linear-gradient(155deg, #003c78, #0078d8 55%, #00a89c);
+  box-shadow: 0 10px 22px rgba(0, 120, 216, 0.22);
+}
+
+.doc-avail-board__day.is-today:not(.is-active) {
+  border-color: rgba(0, 180, 168, 0.45);
+  background: rgba(0, 180, 168, 0.08);
+}
+
+.doc-avail-board__day:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.doc-avail-board__day-label {
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.doc-avail-board__day-date {
+  font-size: 0.7rem;
+}
+
+.doc-avail-board__day-count {
+  margin-top: 0.1rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.doc-avail-board__list-wrap {
+  min-height: 0;
+  overflow: auto;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 120, 216, 0.1);
+  background: rgba(247, 251, 253, 0.7);
+}
+
+.doc-avail-board__list {
+  list-style: none;
+  margin: 0;
+  padding: 0.35rem;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.doc-avail-board__list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.55rem 1rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid rgba(0, 120, 216, 0.08);
+}
+
+.doc-avail-board__list strong {
+  display: block;
+  font-size: 0.9rem;
+}
+
+.doc-avail-board__list p {
+  margin: 0.15rem 0 0;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+
+.doc-avail-board__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.doc-avail-board__empty,
+.doc-avail-board__loading {
+  margin: 0;
+  padding: 0.9rem;
+}
+
+@media (max-width: 900px) {
+  .doc-avail-board__summary,
+  .doc-avail-board--compact .doc-avail-board__summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

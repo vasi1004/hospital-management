@@ -6,6 +6,7 @@ import { AdminDashboardPage } from "@/pages/admin/AdminDashboardPage";
 import { DepartmentsPage } from "@/pages/admin/DepartmentsPage";
 import { DoctorsPage } from "@/pages/admin/DoctorsPage";
 import { AppointmentsPage } from "@/pages/appointments/AppointmentsPage";
+import { DoctorAvailabilityPage } from "@/pages/doctor/DoctorAvailabilityPage";
 import { DoctorDashboardPage } from "@/pages/doctor/DoctorDashboardPage";
 import { DoctorTodayPage } from "@/pages/doctor/DoctorTodayPage";
 import { DoctorSchedulePage } from "@/pages/doctor/DoctorSchedulePage";
@@ -100,6 +101,10 @@ export default function App() {
       <Route element={<ProtectedRoute roles={[ROLES.DOCTOR]} />}>
         <Route path="/doctor" element={<DoctorDashboardPage />} />
         <Route path="/doctor/today" element={<DoctorTodayPage />} />
+        <Route
+          path="/doctor/availability"
+          element={<DoctorAvailabilityPage />}
+        />
         <Route path="/doctor/schedule" element={<DoctorSchedulePage />} />
         <Route path="/doctor/history" element={<DoctorHistoryPage />} />
         <Route
