@@ -271,19 +271,26 @@
 .doc-avail__hour-presets {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.45rem;
+  gap: 0.55rem;
   margin-bottom: 0.95rem;
 }
 
 .doc-avail__hour-preset {
-  border: 1px solid rgba(0, 120, 216, 0.16);
-  background: #fff;
-  color: var(--accent-deep);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.35rem;
+  border: 1px solid #b7d3ea;
+  background: #ffffff;
+  color: #003c78;
   border-radius: 999px;
-  padding: 0.45rem 0.8rem;
-  font-size: 0.8rem;
+  padding: 0.55rem 1rem;
+  font-size: 0.84rem;
   font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
   cursor: pointer;
+  box-shadow: 0 1px 2px rgba(2, 24, 48, 0.04);
   transition:
     background 160ms var(--ease),
     border-color 160ms var(--ease),
@@ -292,15 +299,16 @@
 }
 
 .doc-avail__hour-preset:hover:not(:disabled) {
-  background: var(--accent-soft);
-  border-color: rgba(0, 120, 216, 0.35);
+  background: #eef6fc;
+  border-color: #0078d8;
+  color: #003c78;
 }
 
 .doc-avail__hour-preset.is-active {
-  color: #fff;
-  border-color: transparent;
-  background: linear-gradient(135deg, var(--accent-deep), var(--accent) 60%, var(--teal));
-  box-shadow: 0 8px 18px rgba(0, 120, 216, 0.2);
+  color: #ffffff;
+  border-color: #0078d8;
+  background: #0078d8;
+  box-shadow: 0 8px 18px rgba(0, 120, 216, 0.24);
 }
 
 .doc-avail__hour-preset:disabled {
@@ -383,22 +391,28 @@
   color: var(--ink-soft);
 }
 
+.doc-avail__clock-select span {
+  text-transform: uppercase;
+}
+
 .doc-avail__clock-select select {
   width: 100%;
   appearance: none;
+  -webkit-appearance: none;
   border: 1px solid rgba(0, 120, 216, 0.18);
   border-radius: 12px;
-  background:
-    linear-gradient(180deg, #fff, #f4f9fc);
-  color: var(--ink);
+  color: #0b1f2a;
   font-size: 0.95rem;
   font-weight: 700;
+  text-transform: none;
+  letter-spacing: normal;
   padding: 0.7rem 2rem 0.7rem 0.8rem;
   outline: none;
   cursor: pointer;
+  background-color: #fff;
   background-image:
-    linear-gradient(45deg, transparent 50%, var(--accent-deep) 50%),
-    linear-gradient(135deg, var(--accent-deep) 50%, transparent 50%),
+    linear-gradient(45deg, transparent 50%, #003c78 50%),
+    linear-gradient(135deg, #003c78 50%, transparent 50%),
     linear-gradient(180deg, #fff, #f4f9fc);
   background-position:
     calc(100% - 14px) calc(50% - 2px),
@@ -416,7 +430,7 @@
 }
 
 .doc-avail__clock-select select:focus {
-  border-color: var(--accent);
+  border-color: #0078d8;
   box-shadow: 0 0 0 4px rgba(0, 120, 216, 0.14);
 }
 

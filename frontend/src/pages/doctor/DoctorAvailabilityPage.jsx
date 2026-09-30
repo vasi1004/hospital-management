@@ -36,22 +36,26 @@ const HOUR_OPTIONS = Array.from({ length: 24 }, (_, hour) => ({
 }));
 
 const HOUR_PRESETS = [
-  { id: "standard", label: "9:00 – 5:00", from: "09:00", to: "17:00" },
-  { id: "morning", label: "9:00 – 1:00", from: "09:00", to: "13:00" },
-  { id: "extended", label: "10:00 – 6:00", from: "10:00", to: "18:00" },
-  { id: "evening", label: "2:00 – 8:00", from: "14:00", to: "20:00" },
+  { id: "standard", label: "9:00 AM - 5:00 PM", from: "09:00", to: "17:00" },
+  { id: "morning", label: "9:00 AM - 1:00 PM", from: "09:00", to: "13:00" },
+  { id: "extended", label: "10:00 AM - 6:00 PM", from: "10:00", to: "18:00" },
+  { id: "evening", label: "2:00 PM - 8:00 PM", from: "14:00", to: "20:00" },
 ];
 
 function formatTime(value) {
   if (!value) return "";
-  return String(value).slice(0, 5);
+  const raw = String(value).trim();
+  const match = raw.match(/^(\d{1,2}):(\d{2})/);
+  if (!match) return raw.slice(0, 5);
+  return `${match[1].padStart(2, "0")}:${match[2]}`;
 }
 
 function splitTime(value) {
   const raw = formatTime(value) || "09:00";
-  const [hour = "09", minute = "00"] = raw.split(":");
-  const snapped = MINUTE_OPTIONS.includes(minute) ? minute : "00";
-  return { hour: hour.padStart(2, "0"), minute: snapped };
+  const [hourPart = "09", minutePart = "00"] = raw.split(":");
+  const hourNum = Math.min(23, Math.max(0, Number(hourPart) || 0));
+  const minute = MINUTE_OPTIONS.includes(minutePart) ? minutePart : "00";
+  return { hour: String(hourNum).padStart(2, "0"), minute };
 }
 
 function joinTime(hour, minute) {

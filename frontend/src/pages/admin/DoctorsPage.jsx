@@ -38,6 +38,7 @@ export function DoctorsPage() {
   const [items, setItems] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [doctorUsers, setDoctorUsers] = useState([]);
+  const [linkedAuthUserIds, setLinkedAuthUserIds] = useState([]);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("active");
   const [error, setError] = useState(null);
@@ -51,7 +52,7 @@ export function DoctorsPage() {
     setLoading(true);
     setError(null);
     try {
-      const [docs, deps, users] = await Promise.all([
+      const [docs, deps, users, allDocs] = await Promise.all([
         listDoctorsRequest(accessToken, {
           search,
           status,
@@ -60,10 +61,20 @@ export function DoctorsPage() {
         }),
         listDepartmentsRequest(accessToken, true),
         listUsersRequest(accessToken, { role: "doctor", status: "active" }),
+        // Full directory so we know which logins are already linked (any status).
+        listDoctorsRequest(accessToken, {
+          status: "all",
+          page: 1,
+          page_size: 100,
+        }),
       ]);
       setItems(docs.items || []);
       setDepartments(Array.isArray(deps) ? deps : []);
       setDoctorUsers(Array.isArray(users) ? users : []);
+      const linked = (allDocs.items || [])
+        .map((d) => d.auth_user_id)
+        .filter((id) => id != null);
+      setLinkedAuthUserIds(linked);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load");
     } finally {
@@ -220,8 +231,7 @@ export function DoctorsPage() {
               <thead>
                 <tr>
                   <th>Doctor</th>
-                  <th>Specialization</th>
-                  <th>Department</th>
+                  <th>Specialty</th>
                   <th>Availability</th>
                   <th>Phone</th>
                   <th>Status</th>
@@ -231,14 +241,14 @@ export function DoctorsPage() {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={7} className="ui-muted text-center">
+                    <td colSpan={6} className="ui-muted text-center">
                       Loading doctors…
                     </td>
                   </tr>
                 ) : null}
                 {!loading && items.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="ui-muted text-center">
+                    <td colSpan={6} className="ui-muted text-center">
                       No doctors found. Click Add doctor to create one.
                     </td>
                   </tr>
@@ -260,7 +270,6 @@ export function DoctorsPage() {
                             </div>
                           </td>
                           <td>{doc.specialization}</td>
-                          <td>{doc.department_name || "—"}</td>
                           <td>
                             <span
                               className={`ui-badge ${
@@ -330,6 +339,7 @@ export function DoctorsPage() {
           accessToken={accessToken}
           departments={departments}
           doctorUsers={doctorUsers}
+          linkedAuthUserIds={linkedAuthUserIds}
           editingDoctor={modal.doctor || null}
           onClose={() => setModal(null)}
           onSuccess={async (saved, mode) => {
