@@ -17,7 +17,6 @@ Frontend uses a single API base:
 | Admin | `admin` | `Admin@123` |
 | Doctor | `doctor` | `Doctor@123` |
 | Receptionist | `reception` | `Reception@123` |
-| Patient | `patient` | `Patient@123` |
 
 ## 1. Backend
 
