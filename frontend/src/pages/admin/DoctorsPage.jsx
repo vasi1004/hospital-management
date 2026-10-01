@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { RoleLayout } from "@/layouts/RoleLayout";
+import { BackendLoader } from "@/components/BackendLoader";
 import { DoctorFormModal } from "@/components/DoctorFormModal";
 import { useAppSelector } from "@/store/hooks";
 import {
@@ -241,8 +242,8 @@ export function DoctorsPage() {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={6} className="ui-muted text-center">
-                      Loading doctors…
+                    <td colSpan={6}>
+                      <BackendLoader variant="compact" label="Loading doctors…" />
                     </td>
                   </tr>
                 ) : null}

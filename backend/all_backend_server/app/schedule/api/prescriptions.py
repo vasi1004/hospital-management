@@ -1,11 +1,14 @@
 """Doctor prescription APIs — digital prescription cards."""
 
 from datetime import date
-from typing import Annotated, Optional
+from typing import Annotated, Literal, Optional
+from urllib.parse import quote
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi.responses import Response
 from sqlalchemy.orm import joinedload
 
+from app.core.config import get_settings
 from app.schedule.deps import DbSession, LinkedDoctor, TokenUser, require_roles
 from app.schedule.models.clinical import Appointment, Doctor, Prescription, PrescriptionItem
 from app.schedule.schemas.clinical import (
@@ -14,6 +17,7 @@ from app.schedule.schemas.clinical import (
     PrescriptionPublic,
 )
 from app.schedule.services.codes import next_prescription_code
+from app.schedule.services.prescription_pdf import build_prescription_pdf
 
 DoctorOnly = Annotated[TokenUser, Depends(require_roles("doctor"))]
 StaffRoles = Annotated[
@@ -70,6 +74,7 @@ def list_prescriptions(
     current_user: StaffRoles,
     patient_id: Optional[int] = None,
     doctor_id: Optional[int] = None,
+    appointment_id: Optional[int] = None,
     date_from: Optional[date] = None,
     date_to: Optional[date] = None,
 ) -> PrescriptionListResponse:
@@ -94,6 +99,8 @@ def list_prescriptions(
 
     if patient_id:
         query = query.filter(Prescription.patient_id == patient_id)
+    if appointment_id:
+        query = query.filter(Prescription.appointment_id == appointment_id)
     if date_from:
         query = query.filter(Prescription.prescribed_on >= date_from)
     if date_to:
@@ -103,6 +110,60 @@ def list_prescriptions(
     return PrescriptionListResponse(
         items=[_to_public(item) for item in items],
         total=len(items),
+    )
+
+
+def _assert_prescription_access(
+    db: DbSession,
+    current_user: TokenUser,
+    row: Prescription,
+) -> None:
+    if current_user.role.lower() != "doctor":
+        return
+    linked = (
+        db.query(Doctor)
+        .filter(Doctor.auth_user_id == current_user.user_id)
+        .first()
+    )
+    if not linked or row.doctor_id != linked.id:
+        raise HTTPException(status_code=403, detail="Not your prescription")
+
+
+@router.get("/{prescription_id}/pdf")
+def get_prescription_pdf(
+    prescription_id: int,
+    db: DbSession,
+    current_user: StaffRoles,
+    disposition: Literal["inline", "attachment"] = Query(
+        default="inline",
+        description="inline = view in browser; attachment = force download",
+    ),
+) -> Response:
+    """Generate a PDF from live prescription data (doctor, admin, receptionist)."""
+    row = _load_prescription(db, prescription_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="Prescription not found")
+
+    _assert_prescription_access(db, current_user, row)
+
+    settings = get_settings()
+    pdf_bytes = build_prescription_pdf(
+        row,
+        hospital_name=settings.hospital_display_name,
+    )
+    filename = f"{row.prescription_code or f'prescription-{row.id}'}.pdf"
+    # RFC 5987 filename for non-ASCII safety
+    content_disposition = (
+        f'{disposition}; filename="{filename}"; '
+        f"filename*=UTF-8''{quote(filename)}"
+    )
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": content_disposition,
+            "Cache-Control": "no-store",
+        },
     )
 
 
@@ -116,15 +177,7 @@ def get_prescription(
     if not row:
         raise HTTPException(status_code=404, detail="Prescription not found")
 
-    if current_user.role.lower() == "doctor":
-        linked = (
-            db.query(Doctor)
-            .filter(Doctor.auth_user_id == current_user.user_id)
-            .first()
-        )
-        if not linked or row.doctor_id != linked.id:
-            raise HTTPException(status_code=403, detail="Not your prescription")
-
+    _assert_prescription_access(db, current_user, row)
     return _to_public(row)
 
 

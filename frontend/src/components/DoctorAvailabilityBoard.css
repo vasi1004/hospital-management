@@ -116,7 +116,7 @@
 .doc-avail-board__day.is-active {
   color: #fff;
   border-color: transparent;
-  background: linear-gradient(155deg, #003c78, #0078d8 55%, #00a89c);
+  background: linear-gradient(155deg, var(--accent-deep), var(--accent) 55%, var(--accent));
   box-shadow: 0 10px 22px rgba(0, 120, 216, 0.22);
 }
 

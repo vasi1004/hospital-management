@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { BackendLoader } from "@/components/BackendLoader";
 import { RoleLayout } from "@/layouts/RoleLayout";
 import { useAppSelector } from "@/store/hooks";
 import { DOCTOR_NAV } from "@/constants/nav";
@@ -8,6 +9,7 @@ import { AppLogo } from "@/components/AppLogo";
 import {
   createPrescriptionRequest,
   fetchMyDoctorProfile,
+  fetchPrescriptionPdfBlob,
   getPrescriptionRequest,
   listAppointmentsRequest,
   listPrescriptionsRequest,
@@ -21,6 +23,17 @@ const EMPTY_ITEM = {
   duration: "",
   instructions: "",
 };
+
+function triggerBlobDownload(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
+}
 
 export function DoctorPrescriptionPage() {
   const { prescriptionId } = useParams();
@@ -41,6 +54,10 @@ export function DoctorPrescriptionPage() {
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [pdfBusy, setPdfBusy] = useState(false);
+  const [pdfPreviewOpen, setPdfPreviewOpen] = useState(false);
+  const [pdfPreviewUrl, setPdfPreviewUrl] = useState(null);
+  const [pdfPreviewError, setPdfPreviewError] = useState(null);
 
   useEffect(() => {
     if (!accessToken) return;
@@ -81,10 +98,10 @@ export function DoctorPrescriptionPage() {
           if (!found) throw new Error("Appointment not found for this doctor");
           setAppointment(found);
 
-          const rxList = await listPrescriptionsRequest(accessToken);
-          const prior = (rxList.items || []).find(
-            (row) => String(row.appointment_id) === String(appointmentIdParam),
-          );
+          const rxList = await listPrescriptionsRequest(accessToken, {
+            appointment_id: appointmentIdParam,
+          });
+          const prior = (rxList.items || [])[0];
           if (prior) {
             navigate(`/doctor/prescriptions/${prior.id}`, { replace: true });
           }
@@ -105,6 +122,12 @@ export function DoctorPrescriptionPage() {
       cancelled = true;
     };
   }, [accessToken, prescriptionId, appointmentIdParam, navigate]);
+
+  useEffect(() => {
+    return () => {
+      if (pdfPreviewUrl) URL.revokeObjectURL(pdfPreviewUrl);
+    };
+  }, [pdfPreviewUrl]);
 
   const cardMeta = useMemo(() => {
     if (existing) {
@@ -135,6 +158,58 @@ export function DoctorPrescriptionPage() {
     setItems((prev) =>
       prev.map((item, i) => (i === index ? { ...item, [key]: value } : item)),
     );
+  }
+
+  function closePdfPreview() {
+    setPdfPreviewOpen(false);
+    setPdfPreviewError(null);
+    setPdfPreviewUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return null;
+    });
+  }
+
+  async function handleViewPdf() {
+    if (!accessToken || !existing?.id) return;
+    setPdfBusy(true);
+    setPdfPreviewError(null);
+    setPdfPreviewOpen(true);
+    try {
+      const { blob } = await fetchPrescriptionPdfBlob(
+        accessToken,
+        existing.id,
+        "inline",
+      );
+      const url = URL.createObjectURL(blob);
+      setPdfPreviewUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return url;
+      });
+    } catch (err) {
+      setPdfPreviewError(
+        err instanceof Error ? err.message : "Unable to preview PDF",
+      );
+    } finally {
+      setPdfBusy(false);
+    }
+  }
+
+  async function handleDownloadPdf() {
+    if (!accessToken || !existing?.id) return;
+    setPdfBusy(true);
+    setError(null);
+    try {
+      const { blob, filename } = await fetchPrescriptionPdfBlob(
+        accessToken,
+        existing.id,
+        "attachment",
+      );
+      triggerBlobDownload(blob, filename);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to download PDF");
+    } finally {
+      setPdfBusy(false);
+    }
   }
 
   async function handleSubmit(event) {
@@ -190,14 +265,20 @@ export function DoctorPrescriptionPage() {
       </div>
 
       {error ? <p className="ui-alert-error mb-3">{error}</p> : null}
-      {loading ? <p className="ui-muted">Loading…</p> : null}
+      {loading ? <BackendLoader variant="inline" label="Loading prescription…" /> : null}
 
       {!loading ? (
         <form className="rx-layout" onSubmit={handleSubmit}>
           <article className="rx-card" aria-label="Digital prescription">
             <header className="rx-card__header">
               <div className="rx-card__brand">
-                <AppLogo variant="mark" effect3d className="rx-card__logo" decorative />
+                <AppLogo
+                  variant="mark"
+                  tone="onLight"
+                  effect3d
+                  className="rx-card__logo"
+                  decorative
+                />
                 <div>
                   <p className="rx-card__clinic">{APP_NAME}</p>
                   <h2 className="rx-card__title">Prescription</h2>
@@ -358,8 +439,84 @@ export function DoctorPrescriptionPage() {
                 {saving ? "Saving…" : "Save prescription"}
               </button>
             </div>
-          ) : null}
+          ) : (
+            <div className="rx-actions">
+              <button
+                type="button"
+                className="ui-btn ui-btn-ghost"
+                onClick={handleViewPdf}
+                disabled={pdfBusy || !existing?.id}
+              >
+                {pdfBusy && pdfPreviewOpen ? "Loading PDF…" : "View PDF"}
+              </button>
+              <button
+                type="button"
+                className="ui-btn ui-btn-primary"
+                onClick={handleDownloadPdf}
+                disabled={pdfBusy || !existing?.id}
+              >
+                Download PDF
+              </button>
+            </div>
+          )}
         </form>
+      ) : null}
+
+      {pdfPreviewOpen ? (
+        <div
+          className="rx-pdf-backdrop"
+          role="presentation"
+          onClick={closePdfPreview}
+        >
+          <div
+            className="rx-pdf-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="rx-pdf-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <header className="rx-pdf-modal__head">
+              <h2 id="rx-pdf-title" className="rx-pdf-modal__title">
+                Prescription PDF
+                {existing?.prescription_code
+                  ? ` · ${existing.prescription_code}`
+                  : ""}
+              </h2>
+              <div className="rx-pdf-modal__actions">
+                <button
+                  type="button"
+                  className="ui-btn ui-btn-primary"
+                  onClick={handleDownloadPdf}
+                  disabled={pdfBusy || !existing?.id}
+                >
+                  Download PDF
+                </button>
+                <button
+                  type="button"
+                  className="ui-btn ui-btn-ghost"
+                  onClick={closePdfPreview}
+                >
+                  Close
+                </button>
+              </div>
+            </header>
+            {pdfPreviewError ? (
+              <p className="ui-alert-error rx-pdf-modal__status" role="alert">
+                {pdfPreviewError}
+              </p>
+            ) : null}
+            {!pdfPreviewError && !pdfPreviewUrl ? (
+              <BackendLoader variant="compact" label="Loading preview…" />
+            ) : null}
+            {pdfPreviewUrl ? (
+              <iframe
+                className="rx-pdf-modal__frame"
+                title="Prescription PDF preview"
+                src={pdfPreviewUrl}
+              />
+            ) : null}
+          </div>
+        </div>
       ) : null}
     </RoleLayout>
   );

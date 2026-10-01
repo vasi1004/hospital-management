@@ -22,6 +22,9 @@ export const APP_NAME =
   import.meta.env.VITE_APP_NAME ?? "Hospital Management System";
 
 export const API_URLS = {
+  public: {
+    uiConfig: `${API_BASE}/api/v1/public/ui-config`,
+  },
   authBase: API_BASE,
   scheduleBase: API_BASE,
   auditBase: API_BASE,
@@ -90,6 +93,8 @@ export const API_URLS = {
     list: `${API_BASE}/api/v1/prescriptions/`,
     create: `${API_BASE}/api/v1/prescriptions/`,
     detail: (id) => `${API_BASE}/api/v1/prescriptions/${id}`,
+    pdf: (id, disposition = "inline") =>
+      `${API_BASE}/api/v1/prescriptions/${id}/pdf?disposition=${encodeURIComponent(disposition)}`,
   },
   doctorWorkspace: {
     me: `${API_BASE}/api/v1/doctor-workspace/me`,

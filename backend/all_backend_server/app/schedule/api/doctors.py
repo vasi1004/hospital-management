@@ -1,9 +1,10 @@
 from math import ceil
 from typing import Annotated, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
 from sqlalchemy import or_
 
+from app.notifications import notify_user_created
 from app.schedule.deps import DbSession, TokenUser, require_roles
 from app.schedule.models.clinical import Department, Doctor
 from app.schedule.schemas.clinical import (
@@ -91,7 +92,12 @@ def _ensure_unique_auth_user(
 
 
 @router.post("/", response_model=DoctorPublic, status_code=status.HTTP_201_CREATED)
-def create_doctor(payload: DoctorCreate, db: DbSession, _: AdminOnly) -> DoctorPublic:
+def create_doctor(
+    payload: DoctorCreate,
+    db: DbSession,
+    _: AdminOnly,
+    background_tasks: BackgroundTasks,
+) -> DoctorPublic:
     if payload.department_id:
         dept = (
             db.query(Department)
@@ -114,7 +120,47 @@ def create_doctor(payload: DoctorCreate, db: DbSession, _: AdminOnly) -> DoctorP
     db.add(doctor)
     db.commit()
     db.refresh(doctor)
+
+    # Welcome email after profile exists so Specialty is available (best-effort).
+    _queue_doctor_welcome_email(background_tasks, doctor)
+
     return _to_public(doctor)
+
+
+def _queue_doctor_welcome_email(
+    background_tasks: BackgroundTasks, doctor: Doctor
+) -> None:
+    """Resolve linked login and queue welcome mail with specialty. Never raises."""
+    auth_user_id = getattr(doctor, "auth_user_id", None)
+    if not auth_user_id:
+        return
+    try:
+        from app.auth.db import SessionLocal
+        from app.auth.models.user import User
+
+        auth_db = SessionLocal()
+        try:
+            user = auth_db.query(User).filter(User.id == int(auth_user_id)).first()
+            if not user or not (user.email or "").strip():
+                return
+            full_name = (user.full_name or "").strip()
+            if not full_name:
+                full_name = (
+                    f"{getattr(doctor, 'first_name', '')} "
+                    f"{getattr(doctor, 'last_name', '')}"
+                ).strip() or None
+            background_tasks.add_task(
+                notify_user_created,
+                to_email=user.email,
+                username=user.username,
+                role=user.role or "doctor",
+                full_name=full_name,
+                specialty=getattr(doctor, "specialization", None),
+            )
+        finally:
+            auth_db.close()
+    except Exception:  # noqa: BLE001 — never break doctor create
+        return
 
 
 @router.put("/{doctor_id}", response_model=DoctorPublic)

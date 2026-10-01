@@ -1,4 +1,5 @@
 import { API_URLS } from "@/constants/urls";
+import { trackedFetch } from "@/services/apiActivity";
 
 function extractErrorMessage(body, fallback) {
   if (!body?.detail) return fallback;
@@ -28,7 +29,7 @@ async function request(url, { method = "GET", accessToken, body } = {}) {
   const headers = { ...authHeaders(accessToken) };
   if (body !== undefined) headers["Content-Type"] = "application/json";
 
-  const response = await fetch(url, {
+  const response = await trackedFetch(url, {
     method,
     headers,
     body: body !== undefined ? JSON.stringify(body) : undefined,
@@ -100,7 +101,7 @@ export async function deleteUserRequest(accessToken, userId) {
 }
 
 export async function loginRequest(payload) {
-  const response = await fetch(API_URLS.auth.login, {
+  const response = await trackedFetch(API_URLS.auth.login, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

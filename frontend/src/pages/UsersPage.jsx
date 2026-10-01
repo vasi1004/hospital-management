@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useId, useMemo, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { RoleLayout } from "@/layouts/RoleLayout";
+import { BackendLoader } from "@/components/BackendLoader";
 import { UserAccountModal } from "@/components/UserAccountModal";
 import { ResetPasswordModal } from "@/components/ResetPasswordModal";
 import { useAppSelector } from "@/store/hooks";
@@ -377,8 +378,8 @@ export function UsersPage() {
               <tbody>
                 {loadingList ? (
                   <tr>
-                    <td colSpan={6} className="ui-muted text-center">
-                      Loading users…
+                    <td colSpan={6}>
+                      <BackendLoader variant="compact" label="Loading users…" />
                     </td>
                   </tr>
                 ) : null}

@@ -43,7 +43,7 @@
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #003c78;
+  color: var(--accent-deep);
 }
 
 .book-modal__title {
@@ -125,7 +125,7 @@
   font-size: 0.72rem;
   letter-spacing: 0;
   color: #fff;
-  background: linear-gradient(135deg, #003c78, #0078d8 60%, #00b4a8);
+  background: linear-gradient(135deg, var(--accent-deep), var(--accent) 60%, var(--accent));
 }
 
 .book-hint {
@@ -180,7 +180,7 @@
 .book-patient__trigger:hover,
 .book-patient__trigger:focus-visible {
   border-color: var(--accent);
-  box-shadow: 0 0 0 4px rgba(43, 108, 176, 0.14);
+  box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.14);
   outline: none;
 }
 
@@ -316,7 +316,7 @@
 }
 
 .book-date-chip.is-active {
-  background: linear-gradient(145deg, #003c78, #0078d8 55%, #00a89c);
+  background: linear-gradient(145deg, var(--accent-deep), var(--accent) 55%, var(--accent));
   border-color: transparent;
   color: #fff;
   box-shadow: 0 10px 22px rgba(0, 120, 216, 0.28);
@@ -355,8 +355,8 @@
 
 .book-chip.is-active {
   background: rgba(0, 120, 216, 0.12);
-  border-color: #0078d8;
-  color: #003c78;
+  border-color: var(--accent);
+  color: var(--accent-deep);
   box-shadow: 0 0 0 3px rgba(0, 120, 216, 0.12);
 }
 
@@ -391,7 +391,7 @@
 }
 
 .book-doctor-row.is-active {
-  border-color: #0078d8;
+  border-color: var(--accent);
   background:
     radial-gradient(120% 90% at 0% 0%, rgba(0, 120, 216, 0.1), transparent 55%),
     #f4fafd;
@@ -409,7 +409,7 @@
   font-weight: 700;
   letter-spacing: 0.02em;
   color: #fff;
-  background: linear-gradient(145deg, #003c78, #0078d8 55%, #00b4a8);
+  background: linear-gradient(145deg, var(--accent-deep), var(--accent) 55%, var(--accent));
 }
 
 .book-doctor-row__top {
@@ -432,7 +432,7 @@
   font-family: var(--font-display);
   font-size: 0.95rem;
   font-weight: 700;
-  color: #003c78;
+  color: var(--accent-deep);
   font-variant-numeric: tabular-nums;
 }
 
@@ -482,11 +482,11 @@
 }
 
 .book-slot:hover {
-  border-color: #00a89c;
+  border-color: var(--accent);
 }
 
 .book-slot.is-active {
-  background: linear-gradient(135deg, #0078d8, #00a89c);
+  background: linear-gradient(135deg, var(--accent), var(--accent));
   border-color: transparent;
   color: #fff;
   box-shadow: 0 8px 18px rgba(0, 120, 216, 0.25);
@@ -552,7 +552,7 @@
   font-family: var(--font-display);
   font-weight: 700;
   color: #fff;
-  background: linear-gradient(145deg, #003c78, #0078d8 55%, #00b4a8);
+  background: linear-gradient(145deg, var(--accent-deep), var(--accent) 55%, var(--accent));
 }
 
 .book-summary-card__doctor h3 {

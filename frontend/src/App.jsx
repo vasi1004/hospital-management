@@ -16,6 +16,8 @@ import { ReceptionistDashboardPage } from "@/pages/receptionist/ReceptionistDash
 import { PatientDashboardPage } from "@/pages/patient/PatientDashboardPage";
 import { PatientsPage } from "@/pages/patients/PatientsPage";
 import { PatientFormPage } from "@/pages/patients/PatientFormPage";
+import { StaffPrescriptionsPage } from "@/pages/prescriptions/StaffPrescriptionsPage";
+import { StaffPrescriptionDetailPage } from "@/pages/prescriptions/StaffPrescriptionDetailPage";
 import { ProtectedRoute } from "@/routes/ProtectedRoute";
 import { useAppSelector } from "@/store/hooks";
 import { getRoleHome, ROLES } from "@/constants/roles";
@@ -65,6 +67,14 @@ export default function App() {
           path="/admin/patients/:patientId/edit"
           element={<PatientFormPage basePath="/admin/patients" mode="edit" />}
         />
+        <Route
+          path="/admin/prescriptions"
+          element={<StaffPrescriptionsPage />}
+        />
+        <Route
+          path="/admin/prescriptions/:prescriptionId"
+          element={<StaffPrescriptionDetailPage />}
+        />
         <Route path="/users" element={<Navigate to="/admin/users" replace />} />
       </Route>
 
@@ -95,6 +105,14 @@ export default function App() {
           element={
             <PatientFormPage basePath="/receptionist/patients" mode="edit" />
           }
+        />
+        <Route
+          path="/receptionist/prescriptions"
+          element={<StaffPrescriptionsPage />}
+        />
+        <Route
+          path="/receptionist/prescriptions/:prescriptionId"
+          element={<StaffPrescriptionDetailPage />}
         />
       </Route>
 

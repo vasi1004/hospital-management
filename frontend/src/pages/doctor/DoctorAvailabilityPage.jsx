@@ -1,5 +1,6 @@
 import { useEffect, useId, useMemo, useState } from "react";
 import { Navigate } from "react-router-dom";
+import { BackendLoader } from "@/components/BackendLoader";
 import { RoleLayout } from "@/layouts/RoleLayout";
 import { useAppSelector } from "@/store/hooks";
 import { DOCTOR_NAV } from "@/constants/nav";
@@ -382,7 +383,10 @@ export function DoctorAvailabilityPage() {
 
         {loading ? (
           <section className="doc-avail__board doc-avail__board--loading">
-            <p className="ui-muted">Loading your schedule from the server…</p>
+            <BackendLoader
+              variant="inline"
+              label="Loading your schedule from the server…"
+            />
           </section>
         ) : (
           <form className="doc-avail__board" onSubmit={handleSave} noValidate>

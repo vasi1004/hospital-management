@@ -131,9 +131,15 @@ export function DoctorTodayPage() {
                     <div className="flex flex-wrap gap-2">
                       <Link
                         className="ui-btn ui-btn-primary"
-                        to={`/doctor/prescriptions/new?appointmentId=${row.id}`}
+                        to={
+                          row.prescription_id
+                            ? `/doctor/prescriptions/${row.prescription_id}`
+                            : `/doctor/prescriptions/new?appointmentId=${row.id}`
+                        }
                       >
-                        {row.has_prescription ? "View / Rx" : "Write Rx"}
+                        {row.has_prescription || row.prescription_id
+                          ? "View / Rx"
+                          : "Write Rx"}
                       </Link>
                       {!TERMINAL.has(row.status) ? (
                         <button

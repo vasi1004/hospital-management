@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { RoleLayout } from "@/layouts/RoleLayout";
+import { BackendLoader } from "@/components/BackendLoader";
 import { BookAppointmentModal } from "@/components/BookAppointmentModal";
 import { RescheduleAppointmentModal } from "@/components/RescheduleAppointmentModal";
 import { useAppSelector } from "@/store/hooks";
 import { ADMIN_NAV, RECEPTION_NAV } from "@/constants/nav";
-import { ROLES } from "@/constants/roles";
+import { getPrescriptionsBasePath, ROLES } from "@/constants/roles";
 import {
   listAppointmentsRequest,
   listDoctorsRequest,
@@ -57,6 +58,7 @@ export function AppointmentsPage() {
 
   const isAdmin = user?.role === ROLES.ADMIN;
   const navItems = isAdmin ? ADMIN_NAV : RECEPTION_NAV;
+  const prescriptionsBasePath = getPrescriptionsBasePath(user?.role);
 
   async function loadListAndPatients() {
     if (!accessToken) return;
@@ -271,8 +273,11 @@ export function AppointmentsPage() {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={6} className="ui-muted text-center">
-                      Loading appointments…
+                    <td colSpan={6}>
+                      <BackendLoader
+                        variant="compact"
+                        label="Loading appointments…"
+                      />
                     </td>
                   </tr>
                 ) : null}
@@ -305,6 +310,14 @@ export function AppointmentsPage() {
                     </td>
                     <td>
                       <div className="apts-actions">
+                        {row.prescription_id && prescriptionsBasePath ? (
+                          <Link
+                            className="ui-btn ui-btn-ghost"
+                            to={`${prescriptionsBasePath}/${row.prescription_id}`}
+                          >
+                            View Rx
+                          </Link>
+                        ) : null}
                         {!TERMINAL.has(row.status) ? (
                           <>
                             <button
@@ -323,9 +336,9 @@ export function AppointmentsPage() {
                               Cancel
                             </button>
                           </>
-                        ) : (
+                        ) : !row.prescription_id ? (
                           <span className="ui-muted text-sm">—</span>
-                        )}
+                        ) : null}
                       </div>
                     </td>
                   </tr>

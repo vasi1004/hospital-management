@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { RoleLayout } from "@/layouts/RoleLayout";
+import { BackendLoader } from "@/components/BackendLoader";
 import { DepartmentFormModal } from "@/components/DepartmentFormModal";
 import { useAppSelector } from "@/store/hooks";
 import {
@@ -165,7 +166,7 @@ export function DepartmentsPage() {
           ) : null}
 
           {loading ? (
-            <p className="ui-muted">Loading departments…</p>
+            <BackendLoader variant="inline" label="Loading departments…" />
           ) : filtered.length === 0 ? (
             <p className="ui-muted">
               {items.length === 0

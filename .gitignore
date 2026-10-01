@@ -11,3 +11,4 @@ Desktop.ini
 
 # Cursor local (keep shared project rules/skills tracked)
 .cursor/mcp.json
+.agents/

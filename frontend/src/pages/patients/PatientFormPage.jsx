@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
+import { BackendLoader } from "@/components/BackendLoader";
+import { PatientVisitHistory } from "@/components/PatientVisitHistory";
 import { RoleLayout } from "@/layouts/RoleLayout";
 import { useAppSelector } from "@/store/hooks";
 import {
@@ -8,7 +10,7 @@ import {
   updatePatientRequest,
 } from "@/services/hmsApi";
 import { ADMIN_NAV, RECEPTION_NAV } from "@/constants/nav";
-import { ROLES } from "@/constants/roles";
+import { getPrescriptionsBasePath, ROLES } from "@/constants/roles";
 
 const EMPTY = {
   first_name: "",
@@ -93,6 +95,7 @@ export function PatientFormPage({ basePath, mode }) {
 
   const canMutate =
     user?.role === ROLES.ADMIN || user?.role === ROLES.RECEPTIONIST;
+  const prescriptionsBasePath = getPrescriptionsBasePath(user?.role);
 
   useEffect(() => {
     if (mode === "create" || !patientId || !accessToken) return;
@@ -216,8 +219,9 @@ export function PatientFormPage({ basePath, mode }) {
       {apiError ? <p className="ui-alert-error mb-4">{apiError}</p> : null}
 
       {loading ? (
-        <p className="ui-muted">Loading…</p>
+        <BackendLoader variant="inline" label="Loading patient…" />
       ) : (
+        <>
         <form
           onSubmit={handleSubmit}
           className="ui-panel ui-panel-pad space-y-5"
@@ -452,6 +456,17 @@ export function PatientFormPage({ basePath, mode }) {
             </button>
           </div>
         </form>
+
+        {isView && patientId && accessToken ? (
+          <div className="mt-4">
+            <PatientVisitHistory
+              accessToken={accessToken}
+              patientId={patientId}
+              prescriptionsBasePath={prescriptionsBasePath}
+            />
+          </div>
+        ) : null}
+        </>
       )}
     </RoleLayout>
   );

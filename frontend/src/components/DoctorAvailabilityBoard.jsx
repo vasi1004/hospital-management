@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { BackendLoader } from "@/components/BackendLoader";
 import { fetchDoctorAvailabilityOverview } from "@/services/hmsApi";
 import "./DoctorAvailabilityBoard.css";
 
@@ -165,7 +166,7 @@ export function DoctorAvailabilityBoard({
           );
         })}
         {loading && !data ? (
-          <p className="ui-muted doc-avail-board__loading">Loading week…</p>
+          <BackendLoader variant="compact" label="Loading week…" />
         ) : null}
       </div>
 
