@@ -13,7 +13,6 @@
 
 .admin-catalog__create {
   white-space: nowrap;
-  box-shadow: 0 10px 22px rgba(0, 120, 216, 0.22);
 }
 
 .admin-catalog__filters {
@@ -68,17 +67,28 @@
 }
 
 .admin-catalog__actions .ui-btn {
+  --dot-offset: 5px;
+  --dot-radius: 10px;
+  --dot-hover-radius: 8px;
   padding: 0.35rem 0.65rem;
   font-size: 0.8rem;
 }
 
 .admin-catalog__danger {
-  color: var(--danger) !important;
+  --dot-fill: #fff1f2 !important;
+  --dot-text: #be123c !important;
+  --dot-border: #be123c !important;
+  --dot-shadow: #fb7185 !important;
+  --dot-hover-fill: #ffe4e6 !important;
+  --dot-hover-text: #9f1239 !important;
+  --dot-hover-border: #be123c !important;
+  color: #be123c !important;
 }
 
 .admin-catalog__danger:hover:not(:disabled) {
-  border-color: rgba(180, 35, 24, 0.35);
-  background: var(--danger-bg);
+  background: #ffe4e6 !important;
+  border-color: #be123c !important;
+  color: #9f1239 !important;
 }
 
 .admin-catalog__dept-card-grid {

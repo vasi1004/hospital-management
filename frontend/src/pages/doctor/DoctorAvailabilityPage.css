@@ -216,7 +216,7 @@
 .doc-avail__day.is-active {
   color: #fff;
   border-color: transparent;
-  background: linear-gradient(160deg, #003c78 0%, #0078d8 55%, #00a89c 120%);
+  background: linear-gradient(160deg, var(--accent-deep) 0%, var(--accent) 55%, var(--accent) 120%);
   box-shadow: 0 12px 24px rgba(0, 120, 216, 0.24);
 }
 
@@ -282,7 +282,7 @@
   min-height: 2.35rem;
   border: 1px solid #b7d3ea;
   background: #ffffff;
-  color: #003c78;
+  color: var(--accent-deep);
   border-radius: 999px;
   padding: 0.55rem 1rem;
   font-size: 0.84rem;
@@ -300,14 +300,14 @@
 
 .doc-avail__hour-preset:hover:not(:disabled) {
   background: #eef6fc;
-  border-color: #0078d8;
-  color: #003c78;
+  border-color: var(--accent);
+  color: var(--accent-deep);
 }
 
 .doc-avail__hour-preset.is-active {
   color: #ffffff;
-  border-color: #0078d8;
-  background: #0078d8;
+  border-color: var(--accent);
+  background: var(--accent);
   box-shadow: 0 8px 18px rgba(0, 120, 216, 0.24);
 }
 
@@ -411,8 +411,8 @@
   cursor: pointer;
   background-color: #fff;
   background-image:
-    linear-gradient(45deg, transparent 50%, #003c78 50%),
-    linear-gradient(135deg, #003c78 50%, transparent 50%),
+    linear-gradient(45deg, transparent 50%, var(--accent-deep) 50%),
+    linear-gradient(135deg, var(--accent-deep) 50%, transparent 50%),
     linear-gradient(180deg, #fff, #f4f9fc);
   background-position:
     calc(100% - 14px) calc(50% - 2px),
@@ -430,7 +430,7 @@
 }
 
 .doc-avail__clock-select select:focus {
-  border-color: #0078d8;
+  border-color: var(--accent);
   box-shadow: 0 0 0 4px rgba(0, 120, 216, 0.14);
 }
 
@@ -501,7 +501,7 @@
   top: 0;
   bottom: 0;
   border-radius: inherit;
-  background: linear-gradient(90deg, #0078d8, #00b4a8);
+  background: linear-gradient(90deg, var(--accent), var(--accent));
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35) inset;
 }
 

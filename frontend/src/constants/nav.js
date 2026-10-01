@@ -4,6 +4,7 @@ export const ADMIN_NAV = [
   { to: "/admin/doctors", label: "Doctors" },
   { to: "/admin/departments", label: "Departments" },
   { to: "/admin/appointments", label: "Appointments" },
+  { to: "/admin/prescriptions", label: "Prescriptions" },
   { to: "/admin/users", label: "Users" },
   { to: "/admin/audit", label: "Audit Trail" },
 ];
@@ -12,6 +13,7 @@ export const RECEPTION_NAV = [
   { to: "/receptionist", label: "Dashboard", end: true },
   { to: "/receptionist/patients", label: "Patients" },
   { to: "/receptionist/appointments", label: "Appointments" },
+  { to: "/receptionist/prescriptions", label: "Prescriptions" },
 ];
 
 export const DOCTOR_NAV = [

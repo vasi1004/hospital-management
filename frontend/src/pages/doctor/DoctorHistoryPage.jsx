@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
+import { BackendLoader } from "@/components/BackendLoader";
 import { RoleLayout } from "@/layouts/RoleLayout";
 import { useAppSelector } from "@/store/hooks";
 import { DOCTOR_NAV } from "@/constants/nav";
@@ -60,7 +61,9 @@ export function DoctorHistoryPage() {
         </p>
 
         {error ? <p className="ui-alert-error mt-3">{error}</p> : null}
-        {loading ? <p className="ui-muted mt-4">Loading…</p> : null}
+        {loading ? (
+          <BackendLoader variant="inline" label="Loading history…" className="mt-4" />
+        ) : null}
         {!loading && grouped.length === 0 ? (
           <p className="ui-muted mt-4">No prescriptions yet.</p>
         ) : null}

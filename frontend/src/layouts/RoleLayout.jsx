@@ -20,8 +20,8 @@ function profileInitials(profile) {
 }
 
 /**
- * @param {object} props
- * @param {boolean} [props.lockViewport=false] When true, page does not scroll (dashboard screens).
+ * Top-rail hospital shell (no left sidebar).
+ * @param {boolean} [props.lockViewport=false]
  */
 export function RoleLayout({
   user: userProp,
@@ -37,8 +37,8 @@ export function RoleLayout({
     (state) => state.auth,
   );
   const [signingOut, setSigningOut] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
-  // Prefer live session user (refreshed from /auth/me); fall back to page prop.
   const profile = sessionUser || userProp;
 
   useEffect(() => {
@@ -66,31 +66,41 @@ export function RoleLayout({
   return (
     <div
       className={[
-        "grid grid-cols-1 lg:grid-cols-[272px_minmax(0,1fr)]",
-        lockViewport
-          ? "lg:h-dvh lg:max-h-dvh lg:overflow-hidden min-h-dvh"
-          : "min-h-dvh",
-      ].join(" ")}
+        "role-shell",
+        lockViewport ? "role-shell--locked" : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
     >
-      <aside
-        className={[
-          "role-sidebar relative flex flex-col gap-6 overflow-hidden px-4 py-5 lg:border-b-0",
-          lockViewport ? "lg:h-dvh" : "lg:min-h-dvh",
-        ].join(" ")}
-      >
-        <div className="role-sidebar__glow" aria-hidden="true" />
-        <div className="role-sidebar__grid" aria-hidden="true" />
+      <div className="role-shell__glow" aria-hidden="true" />
 
-        <div className="relative px-2 pt-1">
-          <div className="role-brand">
-            <AppLogo variant="full" effect3d className="role-brand__logo" />
+      <header className="role-topbar">
+        <div className="role-topbar__brand">
+          <AppLogo variant="mark" tone="onLight" className="role-topbar__mark" />
+          <div className="role-topbar__brand-text">
+            <p className="role-topbar__app">{APP_NAME}</p>
+            <p className="role-topbar__sub">{subtitle}</p>
           </div>
-          <p className="role-sidebar__subtitle mt-3">{subtitle}</p>
-          <span className="sr-only">{APP_NAME}</span>
         </div>
 
+        <button
+          type="button"
+          className="role-topbar__menu-btn ui-btn ui-btn-ghost"
+          aria-expanded={menuOpen}
+          aria-controls="role-top-nav"
+          onClick={() => setMenuOpen((open) => !open)}
+        >
+          {menuOpen ? "Close" : "Menu"}
+        </button>
+
         <nav
-          className="relative flex flex-1 flex-wrap gap-1.5 lg:flex-col"
+          id="role-top-nav"
+          className={[
+            "role-topbar__nav",
+            menuOpen ? "is-open" : "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
           aria-label="Main"
         >
           {navItems.map((item) => (
@@ -99,77 +109,52 @@ export function RoleLayout({
               to={item.to}
               end={item.end}
               className={({ isActive }) =>
-                [
-                  "role-sidebar__link",
-                  isActive ? "is-active" : "",
-                ]
+                ["role-topbar__link", isActive ? "is-active" : ""]
                   .filter(Boolean)
                   .join(" ")
               }
+              onClick={() => setMenuOpen(false)}
             >
               {item.label}
             </NavLink>
           ))}
         </nav>
-      </aside>
 
-      <div
-        className={[
-          "relative flex min-w-0 flex-col",
-          lockViewport ? "lg:min-h-0 lg:h-dvh lg:overflow-hidden" : "",
-        ].join(" ")}
-      >
-        <div
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background:
-              "radial-gradient(900px 420px at 100% -10%, rgba(43,108,176,0.12), transparent 55%), radial-gradient(700px 360px at 0% 100%, rgba(196,146,42,0.07), transparent 50%), linear-gradient(180deg, #eef2f6 0%, #e6ecf2 100%)",
-          }}
-        />
-        <header className="role-header relative shrink-0 border-b border-[#d5e0e6]/80 bg-white/70 px-5 py-3.5 backdrop-blur-md">
-          <div className="role-header__title">
-            <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-[#2b6cb0]">
-              Workspace
-            </p>
-            <h1 className="mt-1 font-display text-xl font-bold tracking-tight text-[#0b1f2a]">
-              {title}
-            </h1>
-          </div>
-
-          <div className="role-header__profile" aria-label="Signed-in user">
-            <div className="role-header__identity">
-              <div className="role-header__avatar" aria-hidden="true">
-                {profileInitials(profile)}
-              </div>
-              <div className="role-header__meta">
-                <p className="role-header__name">{displayName}</p>
-                <p className="role-header__role">
-                  {roleLabel(profile?.role)}
-                  {profile?.email ? (
-                    <span className="role-header__email"> · {profile.email}</span>
-                  ) : null}
-                </p>
-              </div>
+        <div className="role-topbar__user">
+          <div className="role-topbar__identity">
+            <div className="role-topbar__avatar" aria-hidden="true">
+              {profileInitials(profile)}
             </div>
-            <button
-              type="button"
-              className="ui-btn ui-btn-ghost role-header__logout"
-              onClick={handleLogout}
-              disabled={signingOut}
-            >
-              {signingOut ? "Signing out…" : "Logout"}
-            </button>
+            <div className="role-topbar__meta">
+              <p className="role-topbar__name">{displayName}</p>
+              <p className="role-topbar__role">{roleLabel(profile?.role)}</p>
+            </div>
           </div>
-        </header>
-        <div
-          className={[
-            "relative flex-1 p-5",
-            lockViewport ? "lg:min-h-0 lg:overflow-hidden" : "",
-          ].join(" ")}
-        >
-          {children}
+          <button
+            type="button"
+            className="ui-btn ui-btn-ghost role-topbar__logout"
+            onClick={handleLogout}
+            disabled={signingOut}
+          >
+            {signingOut ? "Signing out…" : "Logout"}
+          </button>
         </div>
+      </header>
+
+      <div className="role-pagehead">
+        <h1 className="role-pagehead__title">{title}</h1>
       </div>
+
+      <main
+        className={[
+          "role-main",
+          lockViewport ? "role-main--locked" : "",
+        ]
+          .filter(Boolean)
+          .join(" ")}
+      >
+        {children}
+      </main>
     </div>
   );
 }

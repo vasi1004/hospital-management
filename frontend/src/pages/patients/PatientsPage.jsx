@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
+import { BackendLoader } from "@/components/BackendLoader";
 import { RoleLayout } from "@/layouts/RoleLayout";
 import { useAppSelector } from "@/store/hooks";
 import {
@@ -186,8 +187,8 @@ export function PatientsPage({ basePath }) {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="ui-muted">
-                    Loading patients…
+                  <td colSpan={7}>
+                    <BackendLoader variant="compact" label="Loading patients…" />
                   </td>
                 </tr>
               ) : (data?.items || []).length === 0 ? (

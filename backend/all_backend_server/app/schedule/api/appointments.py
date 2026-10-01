@@ -4,9 +4,10 @@ from datetime import date, timedelta
 from math import ceil
 from typing import Annotated, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
 from sqlalchemy.orm import joinedload
 
+from app.notifications.service import appointment_email_payload, notify_appointment_booked
 from app.schedule.deps import DbSession, LinkedDoctor, TokenUser, require_roles
 from app.schedule.models.clinical import Appointment, Department, Doctor, Patient, Prescription
 from app.schedule.schemas.clinical import (
@@ -42,7 +43,12 @@ router = APIRouter(prefix="/appointments", tags=["appointments"])
 _TERMINAL_STATUSES = frozenset({"completed", "cancelled", "no_show"})
 
 
-def _to_public(row: Appointment, *, has_prescription: bool = False) -> AppointmentPublic:
+def _to_public(
+    row: Appointment,
+    *,
+    has_prescription: bool = False,
+    prescription_id: int | None = None,
+) -> AppointmentPublic:
     patient_name = None
     patient_code = None
     if row.patient:
@@ -52,6 +58,8 @@ def _to_public(row: Appointment, *, has_prescription: bool = False) -> Appointme
     if row.doctor:
         doctor_name = f"{row.doctor.first_name} {row.doctor.last_name}".strip()
     dept_name = row.doctor.department.name if row.doctor and row.doctor.department else None
+    resolved_rx_id = prescription_id
+    resolved_has_rx = bool(has_prescription or resolved_rx_id)
     data = AppointmentPublic.model_validate(row)
     return data.model_copy(
         update={
@@ -59,20 +67,33 @@ def _to_public(row: Appointment, *, has_prescription: bool = False) -> Appointme
             "patient_code": patient_code,
             "doctor_name": doctor_name,
             "department_name": dept_name,
-            "has_prescription": has_prescription,
+            "has_prescription": resolved_has_rx,
+            "prescription_id": resolved_rx_id,
         }
     )
 
 
-def _prescription_ids(db: DbSession, appointment_ids: list[int]) -> set[int]:
+def _prescription_map(db: DbSession, appointment_ids: list[int]) -> dict[int, int]:
+    """Map appointment_id -> prescription_id for the given appointments."""
     if not appointment_ids:
-        return set()
+        return {}
     rows = (
-        db.query(Prescription.appointment_id)
+        db.query(Prescription.appointment_id, Prescription.id)
         .filter(Prescription.appointment_id.in_(appointment_ids))
         .all()
     )
-    return {row[0] for row in rows}
+    return {appointment_id: prescription_id for appointment_id, prescription_id in rows}
+
+
+def _prescription_for_appointment(
+    db: DbSession, appointment_id: int
+) -> int | None:
+    row = (
+        db.query(Prescription.id)
+        .filter(Prescription.appointment_id == appointment_id)
+        .first()
+    )
+    return row[0] if row else None
 
 
 def _linked_doctor_or_404(db: DbSession, user: TokenUser) -> Doctor:
@@ -242,10 +263,16 @@ def list_appointments(
     )
     total = query.count()
     items = query.offset((page - 1) * page_size).limit(page_size).all()
-    rx_ids = _prescription_ids(db, [item.id for item in items])
+    rx_map = _prescription_map(db, [item.id for item in items])
 
     return AppointmentListResponse(
-        items=[_to_public(item, has_prescription=item.id in rx_ids) for item in items],
+        items=[
+            _to_public(
+                item,
+                prescription_id=rx_map.get(item.id),
+            )
+            for item in items
+        ],
         total=total,
         page=page,
         page_size=page_size,
@@ -272,8 +299,10 @@ def list_my_today_appointments(
         .order_by(Appointment.appointment_time.asc())
         .all()
     )
-    rx_ids = _prescription_ids(db, [item.id for item in items])
-    return [_to_public(item, has_prescription=item.id in rx_ids) for item in items]
+    rx_map = _prescription_map(db, [item.id for item in items])
+    return [
+        _to_public(item, prescription_id=rx_map.get(item.id)) for item in items
+    ]
 
 
 @router.get("/mine/upcoming", response_model=list[AppointmentPublic])
@@ -302,8 +331,10 @@ def list_my_upcoming_appointments(
         )
         .all()
     )
-    rx_ids = _prescription_ids(db, [item.id for item in items])
-    return [_to_public(item, has_prescription=item.id in rx_ids) for item in items]
+    rx_map = _prescription_map(db, [item.id for item in items])
+    return [
+        _to_public(item, prescription_id=rx_map.get(item.id)) for item in items
+    ]
 
 
 @router.get("/{appointment_id}", response_model=AppointmentPublic)
@@ -319,20 +350,18 @@ def get_appointment(
         if row.doctor_id != linked.id:
             raise HTTPException(status_code=403, detail="Not your appointment")
 
-    has_rx = (
-        db.query(Prescription.id)
-        .filter(Prescription.appointment_id == row.id)
-        .first()
-        is not None
+    return _to_public(
+        row,
+        prescription_id=_prescription_for_appointment(db, row.id),
     )
-    return _to_public(row, has_prescription=has_rx)
 
 
 @router.post("/", response_model=AppointmentPublic, status_code=status.HTTP_201_CREATED)
 def create_appointment(
     payload: AppointmentCreate,
     db: DbSession,
-    _: MutateRoles,
+    current_user: MutateRoles,
+    background_tasks: BackgroundTasks,
 ) -> AppointmentPublic:
     patient = db.query(Patient).filter(Patient.id == payload.patient_id).first()
     if not patient or not patient.is_active:
@@ -371,6 +400,25 @@ def create_appointment(
     db.commit()
     db.refresh(row)
     row = _load_appointment(db, row.id)
+
+    # Snapshot primitives while session is open; send after response (best-effort).
+    email_payload = appointment_email_payload(
+        doctor=row.doctor,
+        appointment=row,
+        patient=row.patient,
+        booked_by={
+            "username": current_user.username,
+            "role": current_user.role,
+        },
+    )
+    if email_payload is not None:
+        background_tasks.add_task(
+            notify_appointment_booked,
+            to_email=email_payload["to_email"],
+            doctor_name=email_payload["doctor_name"],
+            details=email_payload["details"],
+        )
+
     return _to_public(row, has_prescription=False)
 
 
@@ -435,13 +483,10 @@ def reschedule_appointment(
     db.commit()
     db.refresh(row)
     row = _load_appointment(db, row.id)
-    has_rx = (
-        db.query(Prescription.id)
-        .filter(Prescription.appointment_id == row.id)
-        .first()
-        is not None
+    return _to_public(
+        row,
+        prescription_id=_prescription_for_appointment(db, row.id),
     )
-    return _to_public(row, has_prescription=has_rx)
 
 
 @router.patch("/{appointment_id}/status", response_model=AppointmentPublic)
@@ -461,10 +506,7 @@ def update_appointment_status(
     row.status = payload.status
     db.commit()
     db.refresh(row)
-    has_rx = (
-        db.query(Prescription.id)
-        .filter(Prescription.appointment_id == row.id)
-        .first()
-        is not None
+    return _to_public(
+        row,
+        prescription_id=_prescription_for_appointment(db, row.id),
     )
-    return _to_public(row, has_prescription=has_rx)

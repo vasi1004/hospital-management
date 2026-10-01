@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import {
   Bar,
@@ -26,7 +26,7 @@ function formatMoney(value) {
 }
 
 function formatTime(value) {
-  if (!value) return "—";
+  if (!value) return "-";
   const text = String(value);
   return text.length >= 5 ? text.slice(0, 5) : text;
 }
@@ -41,6 +41,13 @@ function statusBadge(status) {
     no_show: "ui-badge-danger",
   };
   return map[status] || "ui-badge-muted";
+}
+
+function greetingForNow(date = new Date()) {
+  const hour = date.getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  return "Good evening";
 }
 
 export function AdminDashboardPage() {
@@ -72,143 +79,170 @@ export function AdminDashboardPage() {
     };
   }, [accessToken]);
 
+  const greeting = useMemo(() => greetingForNow(), []);
+
   if (!user) return <Navigate to="/login" replace />;
 
-  const cards = [
-    { label: "Patients", value: data?.total_patients ?? "—" },
-    { label: "Doctors", value: data?.total_doctors ?? "—" },
-    { label: "Departments", value: data?.total_departments ?? "—" },
-    { label: "Today", value: data?.todays_appointments ?? "—" },
-    { label: "Pending", value: data?.pending_appointments ?? "—" },
-    { label: "Completed", value: data?.completed_appointments ?? "—" },
-    { label: "Revenue", value: data ? formatMoney(data.total_revenue) : "—" },
+  const census = [
+    { label: "Patients", value: data?.total_patients ?? "-" },
+    { label: "Doctors", value: data?.total_doctors ?? "-" },
+    { label: "Departments", value: data?.total_departments ?? "-" },
+    { label: "Completed", value: data?.completed_appointments ?? "-" },
   ];
 
   return (
     <RoleLayout
       user={user}
-      subtitle="Admin console"
+      subtitle="Hospital operations"
       navItems={ADMIN_NAV}
-      title="Admin Dashboard"
+      title="Operations board"
       lockViewport
     >
-      <div className="staff-dash">
-        <section className="ui-panel ui-panel-pad ui-rise staff-dash__hero">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent)]">
-              Today&apos;s pulse
-            </p>
-            <h2 className="ui-title mt-0.5 text-lg">
-              Welcome, {user.full_name || user.username}
+      <div className="ops">
+        <section className="ops__mast">
+          <div className="ops__intro">
+            <h2>
+              {greeting}, {user.full_name || user.username}
             </h2>
-            <p className="ui-muted mt-1 max-w-2xl text-sm">
-              Live hospital overview — appointments and doctor coverage from the
-              server.
+            <p>
+              Today&apos;s ward board: live visits, census, and doctor coverage
+              from hospital records.
             </p>
+            <div className="ops__intro-actions">
+              <Link to="/admin/appointments" className="ui-btn ui-btn-primary">
+                Open appointments
+              </Link>
+              <Link to="/admin/patients" className="ui-btn ui-btn-ghost">
+                Patient directory
+              </Link>
+            </div>
           </div>
-          <Link to="/admin/appointments" className="ui-btn ui-btn-primary">
-            Open appointments
-          </Link>
+
+          <div className="ops__pulse" aria-label="Today pulse">
+            <article className="ops-pulse ops-pulse--dark">
+              <p className="ops-pulse__label">Today</p>
+              <p className="ops-pulse__value">
+                {loading ? "…" : (data?.todays_appointments ?? "-")}
+              </p>
+              <p className="ops-pulse__hint">Visits booked</p>
+            </article>
+            <article className="ops-pulse">
+              <p className="ops-pulse__label">Pending</p>
+              <p className="ops-pulse__value">
+                {loading ? "…" : (data?.pending_appointments ?? "-")}
+              </p>
+              <p className="ops-pulse__hint">Awaiting care</p>
+            </article>
+            <article className="ops-pulse">
+              <p className="ops-pulse__label">Revenue</p>
+              <p className="ops-pulse__value">
+                {loading ? "…" : data ? formatMoney(data.total_revenue) : "-"}
+              </p>
+              <p className="ops-pulse__hint">Collected</p>
+            </article>
+          </div>
         </section>
 
         {error ? <p className="ui-alert-error shrink-0">{error}</p> : null}
 
-        <div className="staff-dash__kpis">
-          {cards.map((card, index) => (
-            <article
-              key={card.label}
-              className={`ui-panel ui-panel-pad ui-stat ui-rise py-3 ${
-                index < 3 ? `ui-rise-delay-${(index % 3) + 1}` : ""
-              }`}
-            >
-              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-[var(--ink-soft)]">
-                {card.label}
-              </p>
-              <p className="mt-1 font-display text-xl font-bold tabular-nums">
-                {loading ? "…" : card.value}
-              </p>
-            </article>
-          ))}
-        </div>
-
-        <div className="staff-dash__grid">
-          <section className="ui-panel ui-panel-pad ui-rise ui-rise-delay-2 flex min-h-0 flex-col overflow-hidden">
-            <h3 className="ui-title shrink-0 text-base">
-              Today&apos;s appointments
-            </h3>
-            <div className="ui-table-wrap mt-2 min-h-0 flex-1 overflow-auto">
-              <table className="ui-table">
-                <thead>
-                  <tr>
-                    <th>Time</th>
-                    <th>Patient</th>
-                    <th>Doctor</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(data?.todays_list || []).length === 0 ? (
-                    <tr>
-                      <td colSpan={4} className="ui-muted">
-                        {loading ? "Loading…" : "No appointments today."}
-                      </td>
-                    </tr>
-                  ) : (
-                    data.todays_list.map((row) => (
-                      <tr key={row.id}>
-                        <td className="font-semibold">
-                          {formatTime(row.appointment_time)}
-                        </td>
-                        <td>{row.patient_name}</td>
-                        <td>{row.doctor_name}</td>
-                        <td>
-                          <span
-                            className={`ui-badge ${statusBadge(row.status)}`}
-                          >
-                            {String(row.status).replaceAll("_", " ")}
-                          </span>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+        <div className="ops__bento">
+          <section className="ops-panel ops-panel--tickets">
+            <div className="ops-panel__head">
+              <div>
+                <h3 className="ops-panel__title">Visit queue</h3>
+                <p className="ops-panel__sub">Patients in clinic today</p>
+              </div>
+              <Link to="/admin/appointments" className="ops-panel__link">
+                All visits
+              </Link>
+            </div>
+            <div className="ops-panel__body">
+              {(data?.todays_list || []).length === 0 ? (
+                <p className="ops-empty">
+                  {loading ? "Loading visits…" : "No appointments today."}
+                </p>
+              ) : (
+                <div className="ops-tickets">
+                  {data.todays_list.map((row) => (
+                    <article key={row.id} className="ops-ticket">
+                      <span className="ops-ticket__time">
+                        {formatTime(row.appointment_time)}
+                      </span>
+                      <div>
+                        <p className="ops-ticket__who">{row.patient_name}</p>
+                        <p className="ops-ticket__meta">{row.doctor_name}</p>
+                      </div>
+                      <span className={`ui-badge ${statusBadge(row.status)}`}>
+                        {String(row.status).replaceAll("_", " ")}
+                      </span>
+                    </article>
+                  ))}
+                </div>
+              )}
             </div>
           </section>
 
-          <section className="ui-panel ui-panel-pad ui-rise ui-rise-delay-3 flex min-h-0 flex-col overflow-hidden">
-            <h3 className="ui-title shrink-0 text-base">Appointments · 7 days</h3>
-            <div className="mt-2 min-h-0 flex-1">
+          <section className="ops-panel ops-panel--side">
+            <div className="ops-panel__head">
+              <div>
+                <h3 className="ops-panel__title">Census</h3>
+                <p className="ops-panel__sub">Hospital register</p>
+              </div>
+            </div>
+            <div className="ops-panel__body">
+              <div className="ops-stats">
+                {census.map((row) => (
+                  <div key={row.label} className="ops-stat-row">
+                    <p className="ops-stat-row__label">{row.label}</p>
+                    <p className="ops-stat-row__value">
+                      {loading ? "…" : row.value}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          <section className="ops-panel ops-panel--chart">
+            <div className="ops-panel__head">
+              <div>
+                <h3 className="ops-panel__title">Flow this week</h3>
+                <p className="ops-panel__sub">Appointment volume</p>
+              </div>
+            </div>
+            <div className="ops-panel__body" style={{ minHeight: "11rem" }}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={data?.appointment_stats || []}>
                   <CartesianGrid
                     strokeDasharray="3 3"
                     vertical={false}
-                    stroke="#c9d8e4"
+                    stroke="#e4e4e7"
                   />
                   <XAxis
                     dataKey="label"
-                    tick={{ fill: "#5b7380", fontSize: 12 }}
+                    tick={{ fill: "#71717a", fontSize: 12 }}
                   />
                   <YAxis
                     allowDecimals={false}
-                    tick={{ fill: "#5b7380", fontSize: 12 }}
+                    tick={{ fill: "#71717a", fontSize: 12 }}
                   />
                   <Tooltip />
-                  <Bar dataKey="count" fill="#0078d8" radius={[8, 8, 0, 0]} />
+                  <Bar dataKey="count" fill="#059669" radius={[8, 8, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </section>
 
-          <div className="staff-dash__availability ui-rise">
-            <DoctorAvailabilityBoard
-              accessToken={accessToken}
-              days={7}
-              bookAppointmentsPath="/admin/appointments"
-              compact
-            />
-          </div>
+          <section className="ops-panel ops-panel--cover">
+            <div className="ops-panel__body">
+              <DoctorAvailabilityBoard
+                accessToken={accessToken}
+                days={7}
+                bookAppointmentsPath="/admin/appointments"
+                compact
+              />
+            </div>
+          </section>
         </div>
       </div>
     </RoleLayout>

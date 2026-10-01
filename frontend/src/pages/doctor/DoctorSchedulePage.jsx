@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
+import { BackendLoader } from "@/components/BackendLoader";
 import { RoleLayout } from "@/layouts/RoleLayout";
 import { RescheduleAppointmentModal } from "@/components/RescheduleAppointmentModal";
 import { useAppSelector } from "@/store/hooks";
@@ -69,7 +70,9 @@ export function DoctorSchedulePage() {
 
         {error ? <p className="ui-alert-error mt-3">{error}</p> : null}
         {success ? <p className="ui-alert-success mt-3">{success}</p> : null}
-        {loading ? <p className="ui-muted mt-4">Loading…</p> : null}
+        {loading ? (
+          <BackendLoader variant="inline" label="Loading schedule…" className="mt-4" />
+        ) : null}
 
         {!loading && grouped.length === 0 ? (
           <p className="ui-muted mt-4">No appointments in the next two weeks.</p>
@@ -119,9 +122,15 @@ export function DoctorSchedulePage() {
                             {row.appointment_date === today ? (
                               <Link
                                 className="ui-link"
-                                to={`/doctor/prescriptions/new?appointmentId=${row.id}`}
+                                to={
+                                  row.prescription_id
+                                    ? `/doctor/prescriptions/${row.prescription_id}`
+                                    : `/doctor/prescriptions/new?appointmentId=${row.id}`
+                                }
                               >
-                                Write Rx
+                                {row.has_prescription || row.prescription_id
+                                  ? "View Rx"
+                                  : "Write Rx"}
                               </Link>
                             ) : null}
                           </div>

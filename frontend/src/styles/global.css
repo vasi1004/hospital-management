@@ -1,28 +1,33 @@
 @import "tailwindcss";
 
 :root {
-  --ink: #0b1f2a;
-  --ink-soft: #5b6b75;
+  /* Soft Structuralism — clinical trust (from .agents design refs) */
+  --ink: #18181b;
+  --ink-soft: #71717a;
   --paper: #ffffff;
-  --page: #eef3f5;
-  --line: #d5e0e6;
-  --accent: #0078d8;
-  --accent-deep: #003c78;
-  --accent-soft: #e4f5f6;
-  --coral: #e4574d;
-  --coral-soft: #fde8e6;
-  --gold: #c4922a;
-  --gold-soft: #f7efd9;
-  --success: #1f7a4d;
-  --success-soft: #e3f6ec;
-  --danger: #b42318;
-  --danger-bg: #fef3f2;
-  --success-bg: #ecfdf3;
-  --font-display: "Sora", sans-serif;
-  --font-body: "DM Sans", system-ui, sans-serif;
-  --radius: 14px;
-  --shadow: 0 18px 40px rgba(11, 31, 42, 0.08);
-  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --page: #f3f1ec;
+  --line: rgba(226, 232, 240, 0.85);
+  --accent: #059669;
+  --accent-deep: #047857;
+  --accent-soft: #ecfdf5;
+  --accent-secondary: #0f766e;
+  --coral: #e11d48;
+  --coral-soft: #fff1f2;
+  --gold: #d97706;
+  --gold-soft: #fffbeb;
+  --success: #047857;
+  --success-soft: #ecfdf5;
+  --danger: #be123c;
+  --danger-bg: #fff1f2;
+  --success-bg: #ecfdf5;
+  --font-display: "Outfit", system-ui, sans-serif;
+  --font-body: "Outfit", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --shadow: 0 20px 40px -15px rgba(24, 24, 27, 0.06);
+  --shadow-soft: 0 8px 24px -12px rgba(24, 24, 27, 0.05);
+  --ease: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 *,
@@ -67,11 +72,10 @@ a {
 
 /* Shared UI primitives */
 .ui-panel {
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(43, 108, 176, 0.12);
-  border-radius: 18px;
-  box-shadow: var(--shadow);
-  backdrop-filter: blur(8px);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-soft);
 }
 
 .ui-panel-pad {
@@ -84,6 +88,7 @@ a {
   font-weight: 700;
   letter-spacing: -0.03em;
   color: var(--ink);
+  text-wrap: balance;
 }
 
 .ui-muted {
@@ -117,7 +122,7 @@ a {
 .ui-select:focus,
 .ui-textarea:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 4px rgba(43, 108, 176, 0.16);
+  box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.16);
 }
 
 .ui-input:disabled,
@@ -128,22 +133,46 @@ a {
   cursor: not-allowed;
 }
 
+/* Dotted Offset Button — Originkit style (all .ui-btn) */
 .ui-btn {
+  --dot-fill: #18181b;
+  --dot-text: #ffffff;
+  --dot-border: #ffffff;
+  --dot-shadow: #00ff99;
+  --dot-hover-fill: #18181b;
+  --dot-hover-text: #ffffff;
+  --dot-hover-border: #ffffff;
+  --dot-offset: 8px;
+  --dot-radius: 12px;
+  --dot-hover-radius: 10px;
+
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.4rem;
-  border: 0;
-  border-radius: 12px;
-  padding: 0.72rem 1.05rem;
-  font-weight: 700;
+  margin: 0 var(--dot-offset) var(--dot-offset) 0;
+  border: 2px dotted var(--dot-border);
+  border-radius: var(--dot-radius);
+  padding: 0.68rem 1.05rem;
+  background: var(--dot-fill);
+  color: var(--dot-text);
+  font-weight: 600;
   font-size: 0.92rem;
+  letter-spacing: -0.01em;
   cursor: pointer;
   text-decoration: none;
+  white-space: nowrap;
+  box-shadow: 0 0 0 var(--dot-shadow);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
   transition:
-    transform 160ms var(--ease),
-    filter 160ms var(--ease),
-    background-color 160ms var(--ease);
+    transform 280ms cubic-bezier(0.32, 0.72, 0, 1),
+    box-shadow 280ms cubic-bezier(0.32, 0.72, 0, 1),
+    border-radius 280ms cubic-bezier(0.32, 0.72, 0, 1),
+    background-color 280ms cubic-bezier(0.32, 0.72, 0, 1),
+    color 280ms cubic-bezier(0.32, 0.72, 0, 1),
+    border-color 280ms cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 .ui-btn:disabled {
@@ -151,29 +180,51 @@ a {
   cursor: not-allowed;
 }
 
-.ui-btn-primary {
-  background: linear-gradient(135deg, var(--accent-deep), var(--accent));
-  color: #fff;
-  box-shadow: 0 12px 24px rgba(43, 108, 176, 0.28);
+.ui-btn:hover:not(:disabled) {
+  transform: translate(
+    calc(var(--dot-offset) * -1),
+    calc(var(--dot-offset) * -1)
+  );
+  border-radius: var(--dot-hover-radius);
+  background: var(--dot-hover-fill);
+  color: var(--dot-hover-text);
+  border-color: var(--dot-hover-border);
+  box-shadow: var(--dot-offset) var(--dot-offset) 0 var(--dot-shadow);
 }
 
-.ui-btn-primary:hover:not(:disabled) {
-  filter: brightness(1.05);
+.ui-btn:active:not(:disabled) {
+  transform: translate(0, 0);
+  box-shadow: 0 0 0 var(--dot-shadow);
+  border-radius: var(--dot-radius);
+}
+
+.ui-btn-primary {
+  --dot-fill: #18181b;
+  --dot-text: #ffffff;
+  --dot-border: #ffffff;
+  --dot-shadow: #00ff99;
+  --dot-hover-fill: #18181b;
+  --dot-hover-text: #ffffff;
 }
 
 .ui-btn-ghost {
-  background: #fff;
-  border: 1px solid var(--line);
-  color: var(--ink);
-}
-
-.ui-btn-ghost:hover:not(:disabled) {
-  background: #f4f8f9;
+  --dot-fill: #ffffff;
+  --dot-text: #18181b;
+  --dot-border: #18181b;
+  --dot-shadow: #00ff99;
+  --dot-hover-fill: #fafafa;
+  --dot-hover-text: #18181b;
+  --dot-hover-border: #18181b;
 }
 
 .ui-btn-danger {
-  background: var(--coral-soft);
-  color: var(--coral);
+  --dot-fill: #fff1f2;
+  --dot-text: #be123c;
+  --dot-border: #be123c;
+  --dot-shadow: #fb7185;
+  --dot-hover-fill: #ffe4e6;
+  --dot-hover-text: #9f1239;
+  --dot-hover-border: #be123c;
 }
 
 .ui-badge {
@@ -214,9 +265,9 @@ a {
 
 .ui-table-wrap {
   overflow: auto;
-  border: 1px solid rgba(43, 108, 176, 0.12);
-  border-radius: 16px;
-  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
 }
 
 .ui-table {
@@ -292,7 +343,7 @@ a {
   width: 72px;
   height: 72px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(43, 108, 176, 0.16), transparent 70%);
+  background: radial-gradient(circle, rgba(15, 118, 110, 0.16), transparent 70%);
 }
 
 .ui-section {
@@ -342,5 +393,10 @@ a {
 
   .ui-btn {
     transition: none;
+  }
+
+  .ui-btn:hover:not(:disabled) {
+    transform: none;
+    box-shadow: var(--dot-offset) var(--dot-offset) 0 var(--dot-shadow);
   }
 }

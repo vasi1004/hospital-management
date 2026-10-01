@@ -1,4 +1,5 @@
 import { API_URLS } from "@/constants/urls";
+import { trackedFetch } from "@/services/apiActivity";
 
 function extractErrorMessage(body, fallback) {
   if (!body?.detail) return fallback;
@@ -27,7 +28,7 @@ function authHeaders(accessToken) {
 async function request(url, { method = "GET", accessToken, body } = {}) {
   const headers = { ...authHeaders(accessToken) };
   if (body !== undefined) headers["Content-Type"] = "application/json";
-  const response = await fetch(url, {
+  const response = await trackedFetch(url, {
     method,
     headers,
     body: body !== undefined ? JSON.stringify(body) : undefined,
@@ -295,6 +296,35 @@ export async function createPrescriptionRequest(accessToken, payload) {
     accessToken,
     body: payload,
   });
+}
+
+/**
+ * Fetch prescription PDF as a Blob (auth required).
+ * @param {"inline"|"attachment"} disposition
+ */
+export async function fetchPrescriptionPdfBlob(
+  accessToken,
+  id,
+  disposition = "inline",
+) {
+  const response = await trackedFetch(API_URLS.prescriptions.pdf(id, disposition), {
+    method: "GET",
+    headers: {
+      Accept: "application/pdf",
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+  if (!response.ok) {
+    const data = await parseJson(response);
+    throw new Error(extractErrorMessage(data, "Unable to load prescription PDF."));
+  }
+  const blob = await response.blob();
+  const header = response.headers.get("Content-Disposition") || "";
+  const match = /filename\*?=(?:UTF-8''|")?([^\";]+)/i.exec(header);
+  const filename = match
+    ? decodeURIComponent(match[1].replace(/"/g, "").trim())
+    : `prescription-${id}.pdf`;
+  return { blob, filename };
 }
 
 export async function listAuditEventsRequest(accessToken, params = {}) {

@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import Annotated, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
 from sqlalchemy import func, or_, select, update
 from sqlalchemy.exc import IntegrityError
 
@@ -26,6 +26,7 @@ from app.auth.services.audit_client import (
     emit_audit_event,
     snapshot_user,
 )
+from app.notifications import notify_user_created
 
 AdminUser = Annotated[User, Depends(require_roles("admin"))]
 
@@ -172,6 +173,7 @@ def create_user(
     payload: UserCreateRequest,
     db: DbSession,
     current_admin: AdminUser,
+    background_tasks: BackgroundTasks,
 ) -> User:
     existing = (
         db.query(User)
@@ -205,6 +207,16 @@ def create_user(
         after_data=after,
         summary=f'Admin created user "{user.username}" ({user.role})',
     )
+    # Best-effort transactional email after commit — never blocks / fails create.
+    # Doctor welcome is sent from create_doctor so Specialty can be included.
+    if str(user.role or "").strip().lower() != "doctor":
+        background_tasks.add_task(
+            notify_user_created,
+            to_email=user.email,
+            username=user.username,
+            role=user.role,
+            full_name=user.full_name,
+        )
     return user
 
 

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { BackendLoader } from "@/components/BackendLoader";
 import {
   createAppointmentRequest,
   listAvailableDoctorsRequest,
@@ -477,7 +478,7 @@ export function BookAppointmentModal({
                 <span>3</span> Specialty
               </div>
               {loadingAvailability ? (
-                <p className="book-hint">Loading specialties…</p>
+                <BackendLoader variant="compact" label="Loading specialties…" />
               ) : specialties.length === 0 ? (
                 <p className="book-empty">
                   No doctors have free slots on this date. Choose another day or
@@ -531,7 +532,7 @@ export function BookAppointmentModal({
                 <span>4</span> Choose doctor
               </div>
               {loadingAvailability ? (
-                <p className="book-hint">Checking who is free…</p>
+                <BackendLoader variant="compact" label="Checking who is free…" />
               ) : filteredDoctors.length === 0 ? (
                 <p className="book-empty">
                   No doctors match this specialty for the selected date.
@@ -599,7 +600,7 @@ export function BookAppointmentModal({
               {!form.doctor_id ? (
                 <p className="book-empty">Select a doctor to see open slots.</p>
               ) : loadingSlots ? (
-                <p className="book-hint">Loading free slots…</p>
+                <BackendLoader variant="compact" label="Loading free slots…" />
               ) : slots.length === 0 ? (
                 <p className="book-empty">No free slots left for this doctor.</p>
               ) : (

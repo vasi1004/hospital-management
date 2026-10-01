@@ -337,6 +337,7 @@ class AppointmentPublic(BaseModel):
     doctor_name: Optional[str] = None
     department_name: Optional[str] = None
     has_prescription: bool = False
+    prescription_id: Optional[int] = None
 
 
 class AppointmentListResponse(BaseModel):

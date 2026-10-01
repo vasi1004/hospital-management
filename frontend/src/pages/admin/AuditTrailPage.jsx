@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useId, useMemo, useState } from "react";
 import { Navigate } from "react-router-dom";
+import { BackendLoader } from "@/components/BackendLoader";
 import { RoleLayout } from "@/layouts/RoleLayout";
 import { useAppSelector } from "@/store/hooks";
 import {
@@ -81,12 +82,277 @@ function actionTone(action) {
   return "info";
 }
 
+const FIELD_LABELS = {
+  id: "ID",
+  user_id: "User ID",
+  username: "Username",
+  email: "Email",
+  full_name: "Full name",
+  role: "Role",
+  is_active: "Status",
+  active: "Status",
+  password: "Password",
+  hashed_password: "Password",
+  phone: "Phone",
+  department_id: "Department ID",
+  department_name: "Department",
+  specialty: "Specialty",
+  name: "Name",
+  code: "Code",
+  description: "Description",
+  doctor_id: "Doctor ID",
+  patient_id: "Patient ID",
+  appointment_id: "Appointment ID",
+  appointment_date: "Appointment date",
+  appointment_time: "Appointment time",
+  status: "Status",
+  notes: "Notes",
+  diagnosis: "Diagnosis",
+  medicines: "Medicines",
+  created_at: "Created",
+  updated_at: "Updated",
+  deleted_at: "Deleted",
+  last_login_at: "Last login",
+  actor: "Actor",
+  ip_address: "IP address",
+  user_agent: "Device / browser",
+};
+
+function humanLabel(key) {
+  if (FIELD_LABELS[key]) return FIELD_LABELS[key];
+  return String(key)
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function isPlainObject(value) {
+  return value != null && typeof value === "object" && !Array.isArray(value);
+}
+
+/** Coerce API payloads that may arrive as objects or JSON strings. */
+function asDataObject(value) {
+  if (value == null || value === "" || value === "—") return null;
+  if (isPlainObject(value)) return value;
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+      return isPlainObject(parsed) ? parsed : null;
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
+function formatAuditValue(key, value) {
+  if (value == null || value === "") return "—";
+  if (typeof value === "boolean") {
+    if (key === "is_active" || key === "active") {
+      return value ? "Active" : "Inactive";
+    }
+    return value ? "Yes" : "No";
+  }
+  if (typeof value === "number") return String(value);
+  if (Array.isArray(value)) {
+    if (value.length === 0) return "—";
+    if (value.every((item) => typeof item !== "object")) {
+      return value.join(", ");
+    }
+    return `${value.length} item${value.length === 1 ? "" : "s"}`;
+  }
+  if (isPlainObject(value)) {
+    const keys = Object.keys(value);
+    if (keys.length === 0) return "—";
+    return keys
+      .map((k) => `${humanLabel(k)}: ${formatAuditValue(k, value[k])}`)
+      .join(" · ");
+  }
+  const str = String(value);
+  if (
+    /_at$/.test(key) ||
+    key === "created_at" ||
+    key === "updated_at" ||
+    /^\d{4}-\d{2}-\d{2}/.test(str)
+  ) {
+    const formatted = formatWhen(str);
+    if (formatted !== "—" && formatted !== str) return formatted;
+  }
+  if (key === "role") {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+  if (key === "hashed_password" || key === "password") {
+    return value === "[changed]" ? "Changed" : "••••••••";
+  }
+  return str;
+}
+
+function valuesEqual(a, b) {
+  if (a === b) return true;
+  if (a == null && b == null) return true;
+  if (typeof a !== typeof b) return false;
+  if (typeof a === "object") {
+    try {
+      return JSON.stringify(a) === JSON.stringify(b);
+    } catch {
+      return false;
+    }
+  }
+  return false;
+}
+
+function buildAuditRows(before, after) {
+  const beforeObj = asDataObject(before) || {};
+  const afterObj = asDataObject(after) || {};
+  const keys = [
+    ...new Set([...Object.keys(beforeObj), ...Object.keys(afterObj)]),
+  ].sort((a, b) => humanLabel(a).localeCompare(humanLabel(b)));
+
+  return keys.map((key) => {
+    const beforeVal = beforeObj[key];
+    const afterVal = afterObj[key];
+    const hasBefore = Object.prototype.hasOwnProperty.call(beforeObj, key);
+    const hasAfter = Object.prototype.hasOwnProperty.call(afterObj, key);
+    const changed =
+      (hasBefore && hasAfter && !valuesEqual(beforeVal, afterVal)) ||
+      (hasBefore && !hasAfter) ||
+      (!hasBefore && hasAfter);
+    return {
+      key,
+      label: humanLabel(key),
+      beforeText: hasBefore ? formatAuditValue(key, beforeVal) : "—",
+      afterText: hasAfter ? formatAuditValue(key, afterVal) : "—",
+      changed,
+      hasBefore,
+      hasAfter,
+    };
+  });
+}
+
 function countChangedKeys(before, after) {
-  const keys = new Set([
-    ...Object.keys(before || {}),
-    ...Object.keys(after || {}),
-  ]);
-  return keys.size;
+  return buildAuditRows(before, after).filter((row) => row.changed).length;
+}
+
+function AuditChangeTable({ before, after }) {
+  const beforeObj = asDataObject(before);
+  const afterObj = asDataObject(after);
+  const hasBefore = Boolean(beforeObj && Object.keys(beforeObj).length);
+  const hasAfter = Boolean(afterObj && Object.keys(afterObj).length);
+
+  if (!hasBefore && !hasAfter) {
+    if (before == null && after == null) {
+      return (
+        <p className="ui-muted audit-change-empty">No field changes recorded.</p>
+      );
+    }
+    return (
+      <div className="audit-json-grid">
+        <div className="audit-json-block">
+          <div className="audit-json-block__head">
+            <h3>Before</h3>
+          </div>
+          <pre className="audit-json">{prettyJson(before)}</pre>
+        </div>
+        <div className="audit-json-block audit-json-block--after">
+          <div className="audit-json-block__head">
+            <h3>After</h3>
+          </div>
+          <pre className="audit-json">{prettyJson(after)}</pre>
+        </div>
+      </div>
+    );
+  }
+
+  const rows = buildAuditRows(beforeObj, afterObj);
+  const changedRows = rows.filter((row) => row.changed);
+  const displayRows = changedRows.length > 0 ? changedRows : rows;
+  const mode =
+    hasBefore && hasAfter ? "compare" : hasAfter ? "created" : "removed";
+
+  return (
+    <div className="audit-change">
+      <div className="audit-change__head">
+        <h3>
+          {mode === "compare"
+            ? "Field changes"
+            : mode === "created"
+              ? "New values"
+              : "Removed values"}
+        </h3>
+        <span className="ui-muted text-sm">
+          {displayRows.length} field{displayRows.length === 1 ? "" : "s"}
+        </span>
+      </div>
+      <ul className="audit-change__list">
+        {displayRows.map((row) => (
+          <li
+            key={row.key}
+            className={`audit-change__row${row.changed ? " is-changed" : ""}`}
+          >
+            <p className="audit-change__field">{row.label}</p>
+            <div
+              className={`audit-change__values audit-change__values--${mode}`}
+            >
+              {mode !== "created" ? (
+                <div className="audit-change__cell">
+                  <span className="audit-change__cell-label">Before</span>
+                  <span
+                    className={`audit-change__cell-value${row.changed ? " is-before" : ""}`}
+                  >
+                    {row.beforeText}
+                  </span>
+                </div>
+              ) : null}
+              {mode !== "removed" ? (
+                <div className="audit-change__cell">
+                  <span className="audit-change__cell-label">After</span>
+                  <span
+                    className={`audit-change__cell-value${row.changed ? " is-after" : ""}`}
+                  >
+                    {row.afterText}
+                  </span>
+                </div>
+              ) : null}
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function AuditMetadataList({ metadata }) {
+  const metaObj = asDataObject(metadata);
+  if (!metaObj || Object.keys(metaObj).length === 0) {
+    if (metadata == null) return null;
+    return (
+      <div className="audit-json-block">
+        <div className="audit-json-block__head">
+          <h3>Metadata</h3>
+        </div>
+        <pre className="audit-json">{prettyJson(metadata)}</pre>
+      </div>
+    );
+  }
+
+  const entries = Object.entries(metaObj).sort((a, b) =>
+    humanLabel(a[0]).localeCompare(humanLabel(b[0])),
+  );
+
+  return (
+    <div className="audit-change audit-change--meta">
+      <div className="audit-change__head">
+        <h3>Extra details</h3>
+      </div>
+      <dl className="audit-meta-list">
+        {entries.map(([key, value]) => (
+          <div key={key} className="audit-meta-list__row">
+            <dt>{humanLabel(key)}</dt>
+            <dd>{formatAuditValue(key, value)}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  );
 }
 
 const EMPTY_FILTERS = {
@@ -476,8 +742,7 @@ export function AuditTrailPage() {
 
             {loading ? (
               <div className="audit-empty">
-                <div className="audit-empty__pulse" />
-                <p className="ui-muted">Loading audit events…</p>
+                <BackendLoader variant="inline" label="Loading audit events…" />
               </div>
             ) : items.length === 0 ? (
               <div className="audit-empty">
@@ -566,8 +831,7 @@ export function AuditTrailPage() {
 
             {detailLoading ? (
               <div className="audit-empty audit-empty--drawer">
-                <div className="audit-empty__pulse" />
-                <p className="ui-muted">Loading detail…</p>
+                <BackendLoader variant="compact" label="Loading detail…" />
               </div>
             ) : !selected ? (
               <div className="audit-empty audit-empty--drawer">
@@ -629,29 +893,12 @@ export function AuditTrailPage() {
                   ) : null}
                 </dl>
 
-                <div className="audit-json-grid">
-                  <div className="audit-json-block">
-                    <div className="audit-json-block__head">
-                      <h3>Before</h3>
-                    </div>
-                    <pre className="audit-json">{prettyJson(selected.before_data)}</pre>
-                  </div>
-                  <div className="audit-json-block audit-json-block--after">
-                    <div className="audit-json-block__head">
-                      <h3>After</h3>
-                    </div>
-                    <pre className="audit-json">{prettyJson(selected.after_data)}</pre>
-                  </div>
-                </div>
+                <AuditChangeTable
+                  before={selected.before_data}
+                  after={selected.after_data}
+                />
 
-                {selected.metadata ? (
-                  <div className="audit-json-block">
-                    <div className="audit-json-block__head">
-                      <h3>Metadata</h3>
-                    </div>
-                    <pre className="audit-json">{prettyJson(selected.metadata)}</pre>
-                  </div>
-                ) : null}
+                <AuditMetadataList metadata={selected.metadata} />
               </div>
             )}
           </div>

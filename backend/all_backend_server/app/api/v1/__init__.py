@@ -10,6 +10,7 @@ from app.schedule.api.doctor_workspace import router as doctor_workspace_router
 from app.schedule.api.doctors import router as doctors_router
 from app.schedule.api.patients import router as patients_router
 from app.schedule.api.prescriptions import router as prescriptions_router
+from app.api.public_ui import router as public_ui_router
 
 api_router = APIRouter()
 
@@ -28,3 +29,5 @@ api_router.include_router(doctor_workspace_router)
 
 # Audit domain (was audit_server :8002)
 api_router.include_router(audit_router)
+
+api_router.include_router(public_ui_router)

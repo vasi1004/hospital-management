@@ -54,7 +54,7 @@
   font-family: var(--font-display);
   font-weight: 700;
   color: #fff;
-  background: linear-gradient(145deg, #003c78, #0078d8 55%, #00b4a8);
+  background: linear-gradient(145deg, var(--accent-deep), var(--accent) 55%, var(--accent));
   box-shadow: 0 10px 22px rgba(0, 120, 216, 0.28);
 }
 
@@ -64,7 +64,7 @@
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #003c78;
+  color: var(--accent-deep);
 }
 
 .doc-modal__title {
@@ -131,7 +131,7 @@
   font-size: 0.72rem;
   letter-spacing: 0;
   color: #fff;
-  background: linear-gradient(135deg, #003c78, #0078d8 60%, #00b4a8);
+  background: linear-gradient(135deg, var(--accent-deep), var(--accent) 60%, var(--accent));
 }
 
 .doc-login-mode {
@@ -160,7 +160,7 @@
 }
 
 .doc-login-mode__btn.is-active {
-  color: #003c78;
+  color: var(--accent-deep);
   background: #fff;
   box-shadow: 0 6px 16px rgba(2, 24, 48, 0.08);
 }
@@ -233,8 +233,8 @@
 
 .doc-chip.is-active {
   background: rgba(0, 120, 216, 0.12);
-  border-color: #0078d8;
-  color: #003c78;
+  border-color: var(--accent);
+  color: var(--accent-deep);
   box-shadow: 0 0 0 3px rgba(0, 120, 216, 0.12);
 }
 
@@ -286,7 +286,7 @@
 .doc-login__trigger:hover:not(:disabled),
 .doc-login__trigger:focus-visible {
   border-color: var(--accent);
-  box-shadow: 0 0 0 4px rgba(43, 108, 176, 0.14);
+  box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.14);
   outline: none;
 }
 
@@ -429,7 +429,7 @@
   font-family: var(--font-display);
   font-weight: 700;
   color: #fff;
-  background: linear-gradient(145deg, #003c78, #0078d8 55%, #00b4a8);
+  background: linear-gradient(145deg, var(--accent-deep), var(--accent) 55%, var(--accent));
 }
 
 .doc-preview__name {
@@ -445,7 +445,7 @@
   margin: 0;
   font-size: 0.88rem;
   font-weight: 600;
-  color: #003c78;
+  color: var(--accent-deep);
 }
 
 .doc-preview__stats {

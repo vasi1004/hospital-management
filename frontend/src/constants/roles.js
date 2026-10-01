@@ -22,6 +22,18 @@ export function getRoleHome(role) {
   return ROLE_HOME[role] ?? "/login";
 }
 
+/** Role workspace root for staff/doctor dashboards. */
+export function getRoleBasePath(role) {
+  return ROLE_HOME[role] ?? null;
+}
+
+/** Prescriptions list/detail base path for the signed-in role. */
+export function getPrescriptionsBasePath(role) {
+  const base = getRoleBasePath(role);
+  if (!base || role === ROLES.PATIENT) return null;
+  return `${base}/prescriptions`;
+}
+
 export function roleLabel(role) {
   if (!role) return "";
   return String(role).charAt(0).toUpperCase() + String(role).slice(1);
